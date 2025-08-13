@@ -1,0 +1,3 @@
+[submodule "third_party/instruction-decoder"]
+	path = third_party/instruction-decoder
+	url = https://github.com/ics-jku/instruction-decoder.git

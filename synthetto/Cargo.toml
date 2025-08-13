@@ -1,0 +1,13 @@
+[package]
+name = "synthetto"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[dependencies]
+prost = "0.14.1"
+
+[build-dependencies]
+prost-build = "0.14.1"

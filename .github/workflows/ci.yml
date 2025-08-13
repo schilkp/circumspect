@@ -1,0 +1,134 @@
+name: ci
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+  # Allows to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+
+jobs:
+  # ===--------------------------------------------------------------------=== #
+  # Rust checks (build/format/lint..)
+  # ===--------------------------------------------------------------------=== #
+  rust-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+
+      - name: Install apt-deps
+        run: |
+          echo "set man-db/auto-update false" | sudo debconf-communicate
+          sudo dpkg-reconfigure man-db
+          sudo apt-get -y install protobuf-compiler libclang-dev
+
+      - name: Cargo Build
+        run: cargo build --all-features
+
+      - name: Cargo Test
+        run: cargo test
+
+      - name: Format
+        run: cargo fmt -- --check
+
+      - name: Lint
+        run: cargo clippy --all-features -- -D warnings
+
+  # ===--------------------------------------------------------------------=== #
+  # Python format check
+  # ===--------------------------------------------------------------------=== #
+  python-fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Check formatting
+        run: |
+          uv run autopep8 --diff --exit-code --recursive . --exclude third_party,verilator
+
+  # ===--------------------------------------------------------------------=== #
+  # SytemVerilog format check
+  # ===--------------------------------------------------------------------=== #
+  sytemverilog-fmt:
+    runs-on: ubuntu-latest
+    env:
+      VERIBLE_VERSION: v0.0-4017-g62aee204
+      VERIBLE_CHECKSUM: "d9c253c419128530c865664cf4ac70abcf629d4bd04aec1065fd32938394ec2e"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install verible
+        run: |
+          VERIBLE_TARBALL="https://github.com/chipsalliance/verible/releases/download/${{ env.VERIBLE_VERSION }}/verible-${{ env.VERIBLE_VERSION }}-linux-static-x86_64.tar.gz"
+
+          echo "Downloading $VERIBLE_TARBALL"
+          wget -q $VERIBLE_TARBALL -O verible.tar.gz
+
+          echo "Verifying checksum"
+          echo "${{ env.VERIBLE_CHECKSUM }}  verible.tar.gz" | sha256sum -c
+
+          echo "Extracting verible"
+          mkdir -p verible
+          tar -zxf verible.tar.gz -C verible --strip-components=1
+          for i in ./verible/bin/*; do sudo cp $i /usr/local/bin/$(basename $i); done
+
+      - name: Check formatting
+        run: |
+          ./scripts/verible_format.bash --inplace --verify
+
+  # ===--------------------------------------------------------------------=== #
+  # Integration Tests
+  # ===--------------------------------------------------------------------=== #
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install protoc
+        run: |
+          echo "set man-db/auto-update false" | sudo debconf-communicate
+          sudo dpkg-reconfigure man-db
+          sudo apt-get install protobuf-compiler
+
+      - name: Install Verilator
+        uses: ./.github/actions/setup-verilator
+        with:
+          verilator-version: v5.038
+
+      - name: Install Python dependencies
+        run: uv sync
+
+      - name: Build + Run Examples
+        run: |
+          uv run ./examples/run.py
+
+      - name: Run integration tests
+        run: ./test/test.bash

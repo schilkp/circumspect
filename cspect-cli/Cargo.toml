@@ -1,0 +1,27 @@
+[package]
+name = "cspect-cli"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[features]
+default = ["open"]
+serve = ["dep:axum", "dep:tokio", "dep:tokio-util"]
+open = ["serve", "dep:webbrowser"]
+
+[dependencies]
+addr2line = "0.25.0"
+clap = { version = "4.5.44", features = ["derive"] }
+synthetto = { path = "../synthetto" }
+instruction-decoder = { path = "../third_party/instruction-decoder/" }
+clap_complete = "4.5.57"
+anyhow = "1.0.99"
+axum = { version = "0.8.4", default-features = false, features = ["http1", "json", "query", "tokio"], optional = true }
+webbrowser = { version = "1.0.5", optional = true }
+tokio = { version = "1.47.1", default-features = false, features = ["rt", "macros", "net", "fs"], optional = true }
+tokio-util = { version = "0.7", features = ["io"], optional = true }
+log = "0.4.27"
+env_logger = { version = "0.11.8", default-features = false }
+tempfile = "3.20.0"

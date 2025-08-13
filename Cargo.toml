@@ -1,0 +1,12 @@
+[workspace]
+
+resolver = "2"
+members = ["cspect", "cspect-cli", "synthetto"]
+exclude = ["third_party"]
+
+[workspace.package]
+version = "0.0.0"
+authors = ["Philipp Schilk <schilk.philipp@gmail.com>"]
+edition = "2024"
+repository = "https://github.com/schilkp/circumspect"
+license = "MIT OR Apache-2.0"

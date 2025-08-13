@@ -1,0 +1,17 @@
+package:
+  name: circumspect
+  authors:
+    - "Philipp Schilk <schilkp@ethz.ch>"
+
+export_include_dirs:
+  - include/
+
+sources:
+  - include_dirs:
+      - include
+    files:
+      - target: all(circumspect, not(synthesis))
+        include_dirs:
+          - include
+        files:
+          - include/cspect_pkg.sv

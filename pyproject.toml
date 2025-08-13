@@ -1,0 +1,14 @@
+[project]
+name = "circumspect"
+version = "0.1.0"
+description = "CircumSpect Python tooling"
+requires-python = ">=3.11"
+dependencies = [
+    "perfetto",
+    "assertpy",
+    "autopep8",
+]
+
+[tool.autopep8]
+max_line_length = 100
+ignore = ["E501"]

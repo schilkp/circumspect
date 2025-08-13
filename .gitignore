@@ -1,0 +1,12 @@
+.bender
+Bender.local
+Bender.lock
+working_dir
+obj_dir
+top
+trace_hart_*.dasm
+perf_hart_*.json
+target/
+compile_commands.json
+.cache
+verilator/

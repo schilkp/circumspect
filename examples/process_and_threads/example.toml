@@ -1,0 +1,3 @@
+files = ["../../include/cspect_pkg.sv", "./top.sv"]
+
+extra_verilator_flags = ["-Wno-TIMESCALEMOD", "+incdir+../../include"]
