@@ -6,6 +6,10 @@ edition.workspace = true
 repository.workspace = true
 license.workspace = true
 
+[[bin]]
+name = "cspect"
+path = "src/main.rs"
+
 [features]
 default = ["open"]
 serve = ["dep:axum", "dep:tokio", "dep:tokio-util"]
