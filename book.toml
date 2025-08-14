@@ -1,0 +1,38 @@
+[book]
+title = "CircumSpect"
+authors = ["Philipp Schilk <schilk.philipp@gmail.com>"]
+language = "en"
+multilingual = false
+src = "docs/"
+
+[build]
+build-dir = "build/mdbook"
+create-missing = false
+
+[preprocessor.alerts]
+renderers = ["html", "linkcheck"]
+
+[output.html]
+smart-punctuation = true
+mathjax-support = false
+site-url = "https://schilk.co/CircumSpect"
+git-repository-url = "https://github.com/schilkp/CircumSpect"
+edit-url-template = "https://github.com/schilkp/dynamatic/edit/main/CircumSpect"
+
+[output.html.search]
+limit-results = 40
+use-boolean-and = true
+boost-title = 2
+boost-hierarchy = 2
+boost-paragraph = 1
+expand = true
+heading-split-level = 2
+
+[output.linkcheck]
+follow-web-links = false
+optional = true
+exclude = [
+    # Ignore links with anchors - not supported..
+    '''[^:\s]+\.md:[^:\s]+''',
+    '''[^:\s]+\.md#[^:\s]+''',
+]
