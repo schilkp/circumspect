@@ -126,7 +126,7 @@ package cspect_pkg;
       end
     endfunction
 
-    function void slice_end(uuid_t flows[] = {});
+    function void slice_end(uuid_t flows[] = {}, bit force_end = 0);
       int result;
       if (flows.size() > 3) begin
         $error("cspect: slice_end supports maximum 3 flows, got %0d", flows.size());
@@ -138,7 +138,8 @@ package cspect_pkg;
           $realtime,
           flows.size() > 0 ? flows[0] : 0,
           flows.size() > 1 ? flows[1] : 0,
-          flows.size() > 2 ? flows[2] : 0
+          flows.size() > 2 ? flows[2] : 0,
+          force_end
       );
       if (result != 0) begin
         $error("cspect: cspect_slice_end failed with error code %0d", result);

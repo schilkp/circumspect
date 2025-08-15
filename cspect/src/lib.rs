@@ -275,7 +275,7 @@ impl Context {
             ReplacementBehaviour::Replace => {
                 let track = self.get_mut_track(track_uuid);
                 if !track.active_slices.is_empty() {
-                    self.slice_end_evt(track_uuid, ts, vec![])?;
+                    self.slice_end_evt(track_uuid, ts, vec![], true)?;
                 }
             }
             ReplacementBehaviour::NewSlice => {
@@ -288,7 +288,7 @@ impl Context {
                         // Same slice, do nothing
                         return Ok(());
                     } else {
-                        self.slice_end_evt(track_uuid, ts, vec![])?;
+                        self.slice_end_evt(track_uuid, ts, vec![], true)?;
                     }
                 }
             }
@@ -312,9 +312,16 @@ impl Context {
         track_uuid: u64,
         ts: f64,
         flows: Vec<u64>,
+        force: bool,
     ) -> Result<(), String> {
         self.encode_buffer.clear();
         let ts = self.convert_ts(ts);
+
+        let track = self.get_mut_track(track_uuid);
+        if track.active_slices.is_empty() && !force {
+            return Ok(());
+        }
+
         synthetto::slice_end_evt(track_uuid, ts, flows, &mut self.encode_buffer)
             .expect("prost encode should only fail if buffer is too small, but buffer is vec");
         self.w

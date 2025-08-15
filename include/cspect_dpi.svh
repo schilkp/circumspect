@@ -44,7 +44,8 @@ import "DPI-C" function int cspect_slice_end(
   input real ts,
   input longint unsigned flow1,
   input longint unsigned flow2,
-  input longint unsigned flow3
+  input longint unsigned flow3,
+  input bit force_end
 );
 
 import "DPI-C" function int cspect_instant_evt(

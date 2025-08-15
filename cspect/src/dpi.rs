@@ -247,6 +247,7 @@ pub extern "C" fn cspect_slice_end(
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    force: svBit,
 ) -> c_int {
     object_function_body_err_ret!(
         cspect_slice_end_actual,
@@ -256,6 +257,7 @@ pub extern "C" fn cspect_slice_end(
         flow1,
         flow2,
         flow3,
+        force
     )
 }
 
@@ -266,6 +268,7 @@ fn cspect_slice_end_actual(
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    force: svBit,
 ) -> Result<(), String> {
     let parent_uuid = recover_required_uuid(parent_uuid)?;
     let ts: f64 = ts;
@@ -279,7 +282,8 @@ fn cspect_slice_end_actual(
     if let Some(x) = recover_optional_uuid(flow3) {
         flows.push(x)
     }
-    ctx.slice_end_evt(parent_uuid, ts, flows)
+    let force = recover_bool(force);
+    ctx.slice_end_evt(parent_uuid, ts, flows, force)
 }
 
 #[unsafe(no_mangle)]
