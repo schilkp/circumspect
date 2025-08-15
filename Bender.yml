@@ -10,7 +10,7 @@ sources:
   - include_dirs:
       - include
     files:
-      - target: all(circumspect, not(synthesis))
+      - target: circumspect
         include_dirs:
           - include
         files:
