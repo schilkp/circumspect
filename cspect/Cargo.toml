@@ -7,7 +7,7 @@ repository.workspace = true
 license.workspace = true
 
 [lib]
-crate-type = ["staticlib"]
+crate-type = ["cdylib", "staticlib", "rlib"]
 
 [dependencies]
 synthetto = { path = "../synthetto" }
