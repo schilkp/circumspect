@@ -1,5 +1,5 @@
-`ifndef CSPECT_SVH
-`define CSPECT_SVH
+`ifndef CSPECT_DPI_SVH
+`define CSPECT_DPI_SVH
 
 // Replacement behavior constants for cspect_slice_begin
 `define CSPECT_REPLACE_OFF 0
@@ -106,4 +106,4 @@ import "DPI-C" function int cspect_float_counter_evt(
   input bit compress
 );
 
-`endif  // CSPECT_SVH
+`endif  // CSPECT_DPI_SVH
