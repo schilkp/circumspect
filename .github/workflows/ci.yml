@@ -117,11 +117,11 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Install protoc
+      - name: Install apt-deps (protoc, rv64-gcc)
         run: |
           echo "set man-db/auto-update false" | sudo debconf-communicate
           sudo dpkg-reconfigure man-db
-          sudo apt-get install protobuf-compiler
+          sudo apt-get install protobuf-compiler gcc-riscv64-unknown-elf
 
       - name: Install Verilator
         uses: ./.github/actions/setup-verilator
