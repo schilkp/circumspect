@@ -145,6 +145,6 @@ impl Annotater for Addr2LineAnnotator {
         };
 
         let frames_str = self.frames_str(addr);
-        Ok(Some(format!("0x{addr:08x} ({frames_str})")))
+        Ok(Some(format!("{frames_str} (0x{addr:08x})")))
     }
 }
