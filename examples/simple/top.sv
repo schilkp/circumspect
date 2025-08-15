@@ -35,7 +35,12 @@ module top;
     // active) and start a new slice:
     cpu_track.slice_set("instruction_post_fetch");  // <- ends "instruction_fetch"!
 
-    #20;
+    #10;
+    // `slice_set` has a `compress` option, which will only stop the previous
+    // slice and start a new one if the name (or flows) are different:
+    cpu_track.slice_set("instruction_post_fetch", .compress(1));  // does nothing
+
+    #10;
     memory_track.slice_begin("cache_lookup");
 
     #15;

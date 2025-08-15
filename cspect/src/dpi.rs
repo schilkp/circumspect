@@ -1,6 +1,6 @@
 use synthetto::ChildOrder;
 
-use crate::{Context, svdpi::svBit};
+use crate::{Context, CounterValue, ReplacementBehaviour, svdpi::svBit};
 use std::{
     ffi::{CStr, c_char, c_double, c_int, c_uint, c_ulonglong, c_void},
     path::PathBuf,
@@ -197,7 +197,7 @@ pub extern "C" fn cspect_slice_begin(
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
-    replace_previous_slice: svBit,
+    replacement_behaviour: c_int,
 ) -> c_int {
     object_function_body_err_ret!(
         cspect_slice_begin_actual,
@@ -208,7 +208,7 @@ pub extern "C" fn cspect_slice_begin(
         flow1,
         flow2,
         flow3,
-        replace_previous_slice,
+        replacement_behaviour,
     )
 }
 
@@ -220,12 +220,12 @@ fn cspect_slice_begin_actual(
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
-    replace_previous_slice: svBit,
+    replacement_behaviour: c_int,
 ) -> Result<(), String> {
     let parent_uuid = recover_required_uuid(parent_uuid)?;
     let ts: f64 = ts;
     let name = unsafe { recover_optional_cstr(name)?.map(String::from) };
-    let finish_previous_slice = recover_bool(replace_previous_slice);
+    let replace_behaviour = recover_replacement_behaviour(replacement_behaviour)?;
     let mut flows = vec![];
     if let Some(x) = recover_optional_uuid(flow1) {
         flows.push(x)
@@ -236,7 +236,7 @@ fn cspect_slice_begin_actual(
     if let Some(x) = recover_optional_uuid(flow3) {
         flows.push(x)
     }
-    ctx.slice_begin_evt(parent_uuid, ts, name, flows, finish_previous_slice)
+    ctx.slice_begin_evt(parent_uuid, ts, name, flows, replace_behaviour)
 }
 
 #[unsafe(no_mangle)]
@@ -487,13 +487,15 @@ pub extern "C" fn cspect_int_counter_evt(
     track_uuid: c_ulonglong,
     ts: c_double,
     val: c_ulonglong,
+    compress: svBit,
 ) -> c_int {
     object_function_body_err_ret!(
         cspect_int_counter_evt_actual,
         cspect_ctx,
         track_uuid,
         ts,
-        val
+        val,
+        compress
     )
 }
 
@@ -502,11 +504,13 @@ fn cspect_int_counter_evt_actual(
     track_uuid: c_ulonglong,
     ts: c_double,
     val: c_ulonglong,
+    compress: svBit,
 ) -> Result<(), String> {
     let track_uuid = recover_required_uuid(track_uuid)?;
     let ts = ctx.convert_ts(ts);
-    let val = val as i64;
-    ctx.int_counter_evt(track_uuid, ts, val)
+    let val = CounterValue::Int(val as i64);
+    let compress = recover_bool(compress);
+    ctx.counter_evt(track_uuid, ts, val, compress)
 }
 
 #[unsafe(no_mangle)]
@@ -515,13 +519,15 @@ pub extern "C" fn cspect_float_counter_evt(
     track_uuid: c_ulonglong,
     ts: c_double,
     val: c_double,
+    compress: svBit,
 ) -> c_int {
     object_function_body_err_ret!(
         cspect_float_counter_evt_actual,
         cspect_ctx,
         track_uuid,
         ts,
-        val
+        val,
+        compress
     )
 }
 
@@ -530,10 +536,13 @@ fn cspect_float_counter_evt_actual(
     track_uuid: c_ulonglong,
     ts: c_double,
     val: c_double,
+    compress: svBit,
 ) -> Result<(), String> {
     let track_uuid = recover_required_uuid(track_uuid)?;
     let ts = ctx.convert_ts(ts);
-    ctx.float_counter_evt(track_uuid, ts, val)
+    let val = CounterValue::Float(val);
+    let compress = recover_bool(compress);
+    ctx.counter_evt(track_uuid, ts, val, compress)
 }
 
 // ==== Utils ==================================================================
@@ -588,5 +597,16 @@ fn recover_child_ordering(child_order: c_int) -> Result<Option<ChildOrder>, Stri
         2 => Ok(Some(ChildOrder::Chronological)),
         3 => Ok(Some(ChildOrder::Explicit)),
         i => Err(format!("invalid child ordering {i}")),
+    }
+}
+
+fn recover_replacement_behaviour(
+    replacement_behaviour: c_int,
+) -> Result<ReplacementBehaviour, String> {
+    match replacement_behaviour {
+        0 => Ok(ReplacementBehaviour::NewSlice),
+        1 => Ok(ReplacementBehaviour::Replace),
+        2 => Ok(ReplacementBehaviour::ReplaceIfDifferent),
+        i => Err(format!("invalid replacement behaviour {i}")),
     }
 }

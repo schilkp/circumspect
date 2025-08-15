@@ -12,7 +12,6 @@ package cspect_pkg;
     Explicit = 3
   } child_ordering_e;
 
-
   class cspect_ctx_chandle;
     chandle ctx_chandle;
 
@@ -83,7 +82,14 @@ package cspect_pkg;
 
     function void slice_begin(string name, uuid_t flow1 = 0, uuid_t flow2 = 0, uuid_t flow3 = 0);
       int result = cspect_slice_begin(
-          this.ctx_chandle, this.scope_uuid, $realtime, name, flow1, flow2, flow3, 0
+          this.ctx_chandle,
+          this.scope_uuid,
+          $realtime,
+          name,
+          flow1,
+          flow2,
+          flow3,
+          `CSPECT_REPLACE_OFF
       );
       if (result != 0) begin
         $error("cspect: cspect_slice_begin failed for slice '%s' with error code %0d", name,
@@ -91,9 +97,18 @@ package cspect_pkg;
       end
     endfunction
 
-    function void slice_set(string name, uuid_t flow1 = 0, uuid_t flow2 = 0, uuid_t flow3 = 0);
+    function void slice_set(string name, uuid_t flow1 = 0, uuid_t flow2 = 0, uuid_t flow3 = 0,
+                            bit compress = 0);
+      int replacement_behaviour = compress ? `CSPECT_REPLACE_IF_DIFFERENT : `CSPECT_REPLACE;
       int result = cspect_slice_begin(
-          this.ctx_chandle, this.scope_uuid, $realtime, name, flow1, flow2, flow3, 1
+          this.ctx_chandle,
+          this.scope_uuid,
+          $realtime,
+          name,
+          flow1,
+          flow2,
+          flow3,
+          replacement_behaviour
       );
       if (result != 0) begin
         $error("cspect: cspect_slice_begin failed for slice '%s' with error code %0d", name,
@@ -129,15 +144,19 @@ package cspect_pkg;
       counter_uuid = uuid;
     endfunction
 
-    function void log_int(longint unsigned val);
-      int result = cspect_int_counter_evt(this.ctx_chandle, this.counter_uuid, $realtime, val);
+    function void log_int(longint unsigned val, bit compress = 0);
+      int result = cspect_int_counter_evt(
+          this.ctx_chandle, this.counter_uuid, $realtime, val, compress
+      );
       if (result != 0) begin
         $error("cspect: cspect_int_counter_evt failed with error code %0d", result);
       end
     endfunction
 
-    function void log_float(real val);
-      int result = cspect_float_counter_evt(this.ctx_chandle, this.counter_uuid, $realtime, val);
+    function void log_float(real val, bit compress = 0);
+      int result = cspect_float_counter_evt(
+          this.ctx_chandle, this.counter_uuid, $realtime, val, compress
+      );
       if (result != 0) begin
         $error("cspect: cspect_float_counter_evt failed with error code %0d", result);
       end

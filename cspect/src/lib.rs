@@ -16,9 +16,57 @@ fn ioerr_to_str(e: io::Error) -> String {
     format!("Failed to write to file - {e}")
 }
 
+#[derive(Debug, Clone)]
+struct TrackSlice {
+    name: Option<String>,
+    flows: Vec<u64>,
+}
+
+impl TrackSlice {
+    fn new(name: Option<String>, mut flows: Vec<u64>) -> Self {
+        flows.sort_unstable();
+        Self { name, flows }
+    }
+}
+
+impl PartialEq for TrackSlice {
+    fn eq(&self, other: &Self) -> bool {
+        if self.name != other.name {
+            return false;
+        }
+
+        if self.flows.len() != other.flows.len() {
+            return false;
+        }
+
+        let mut self_flows = self.flows.clone();
+        let mut other_flows = other.flows.clone();
+        self_flows.sort_unstable();
+        other_flows.sort_unstable();
+        self_flows == other_flows
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+enum CounterValue {
+    Int(i64),
+    Float(f64),
+}
+
+#[derive(Debug, PartialEq)]
+struct Counter {
+    last_value: CounterValue,
+}
+
+impl Counter {
+    fn new(value: CounterValue) -> Self {
+        Self { last_value: value }
+    }
+}
+
 #[derive(Debug, Default)]
 struct Track {
-    active_slice_count: u32,
+    active_slices: Vec<TrackSlice>,
 }
 
 #[derive(Debug)]
@@ -28,6 +76,13 @@ struct Context {
     timescale: f64,
     time_mult: u32,
     tracks: HashMap<u64, Track>,
+    counters: HashMap<u64, Counter>,
+}
+
+pub enum ReplacementBehaviour {
+    NewSlice,
+    Replace,
+    ReplaceIfDifferent,
 }
 
 impl Context {
@@ -42,6 +97,7 @@ impl Context {
             timescale,
             time_mult,
             tracks: HashMap::new(),
+            counters: HashMap::new(),
         })
     }
 
@@ -191,12 +247,31 @@ impl Context {
         ts: f64,
         name: Option<String>,
         flows: Vec<u64>,
-        replace_previous_slice: bool,
+        replace_behaviour: ReplacementBehaviour,
     ) -> Result<(), String> {
-        let mut did_replace_slice = false;
-        if replace_previous_slice && self.get_mut_track(track_uuid).active_slice_count != 0 {
-            self.slice_end_evt(track_uuid, ts, vec![])?;
-            did_replace_slice = true;
+        let new_slice = TrackSlice::new(name.clone(), flows.clone());
+
+        match replace_behaviour {
+            ReplacementBehaviour::Replace => {
+                let track = self.get_mut_track(track_uuid);
+                if !track.active_slices.is_empty() {
+                    self.slice_end_evt(track_uuid, ts, vec![])?;
+                }
+            }
+            ReplacementBehaviour::NewSlice => {
+                // No replacement - always create new slice.
+            }
+            ReplacementBehaviour::ReplaceIfDifferent => {
+                let track = self.get_mut_track(track_uuid);
+                if let Some(current_slice) = track.active_slices.last() {
+                    if *current_slice == new_slice {
+                        // Same slice, do nothing
+                        return Ok(());
+                    } else {
+                        self.slice_end_evt(track_uuid, ts, vec![])?;
+                    }
+                }
+            }
         }
 
         let mut data = Vec::with_capacity(64);
@@ -205,9 +280,7 @@ impl Context {
             .expect("prost encode should only fail if buffer is too small, but buffer is vec");
         self.w.write_all(&data).map_err(ioerr_to_str)?;
 
-        if !did_replace_slice {
-            self.get_mut_track(track_uuid).active_slice_count += 1;
-        }
+        self.get_mut_track(track_uuid).active_slices.push(new_slice);
         Ok(())
     }
 
@@ -224,9 +297,7 @@ impl Context {
         self.w.write_all(&data).map_err(ioerr_to_str)?;
 
         let track = self.get_mut_track(track_uuid);
-        if track.active_slice_count != 0 {
-            track.active_slice_count -= 1;
-        }
+        track.active_slices.pop();
         Ok(())
     }
 
@@ -244,21 +315,39 @@ impl Context {
         self.w.write_all(&data).map_err(ioerr_to_str)
     }
 
-    pub fn int_counter_evt(&mut self, track_uuid: u64, ts: u64, val: i64) -> Result<(), String> {
+    pub fn counter_evt(
+        &mut self,
+        track_uuid: u64,
+        ts: u64,
+        value: CounterValue,
+        compress: bool,
+    ) -> Result<(), String> {
+        if compress
+            && let Some(counter) = self.counters.get(&track_uuid)
+            && counter.last_value == value
+        {
+            return Ok(());
+        }
+
         let mut data = Vec::with_capacity(64);
+        match value {
+            CounterValue::Int(val) => {
+                synthetto::int_counter_evt(track_uuid, ts, val, &mut data).expect(
+                    "prost encode should only fail if buffer is too small, but buffer is vec",
+                );
+            }
+            CounterValue::Float(val) => {
+                synthetto::float_counter_evt(track_uuid, ts, val, &mut data).expect(
+                    "prost encode should only fail if buffer is too small, but buffer is vec",
+                );
+            }
+        }
+        self.w.write_all(&data).map_err(ioerr_to_str)?;
 
-        synthetto::int_counter_evt(track_uuid, ts, val, &mut data)
-            .expect("prost encode should only fail if buffer is too small, but buffer is vec");
+        if compress {
+            self.counters.insert(track_uuid, Counter::new(value));
+        }
 
-        self.w.write_all(&data).map_err(ioerr_to_str)
-    }
-
-    pub fn float_counter_evt(&mut self, track_uuid: u64, ts: u64, val: f64) -> Result<(), String> {
-        let mut data = Vec::with_capacity(64);
-
-        synthetto::float_counter_evt(track_uuid, ts, val, &mut data)
-            .expect("prost encode should only fail if buffer is too small, but buffer is vec");
-
-        self.w.write_all(&data).map_err(ioerr_to_str)
+        Ok(())
     }
 }

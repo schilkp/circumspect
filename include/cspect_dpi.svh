@@ -1,6 +1,11 @@
 `ifndef CSPECT_SVH
 `define CSPECT_SVH
 
+// Replacement behavior constants for cspect_slice_begin
+`define CSPECT_REPLACE_OFF 0
+`define CSPECT_REPLACE 1
+`define CSPECT_REPLACE_IF_DIFFERENT 2
+
 import "DPI-C" function chandle cspect_new(
   input string trace_path,
   input real timescale,
@@ -30,7 +35,7 @@ import "DPI-C" function int cspect_slice_begin(
   input longint unsigned flow1,
   input longint unsigned flow2,
   input longint unsigned flow3,
-  input bit replace_previous_slice
+  input int replacement_behaviour
 );
 
 import "DPI-C" function int cspect_slice_end(
@@ -88,14 +93,16 @@ import "DPI-C" function int cspect_int_counter_evt(
   input chandle cspect_ctx,
   input longint unsigned track_uuid,
   input real ts,
-  input longint unsigned val
+  input longint unsigned val,
+  input bit compress
 );
 
 import "DPI-C" function int cspect_float_counter_evt(
   input chandle cspect_ctx,
   input longint unsigned track_uuid,
   input real ts,
-  input real val
+  input real val,
+  input bit compress
 );
 
 `endif  // CSPECT_SVH
