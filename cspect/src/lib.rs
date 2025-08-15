@@ -77,6 +77,7 @@ struct Context {
     time_mult: u32,
     tracks: HashMap<u64, Track>,
     counters: HashMap<u64, Counter>,
+    encode_buffer: Vec<u8>,
 }
 
 pub enum ReplacementBehaviour {
@@ -98,6 +99,7 @@ impl Context {
             time_mult,
             tracks: HashMap::new(),
             counters: HashMap::new(),
+            encode_buffer: Vec::with_capacity(64),
         })
     }
 
@@ -110,6 +112,12 @@ impl Context {
 
     fn get_mut_track(&mut self, uuid: u64) -> &mut Track {
         self.tracks.entry(uuid).or_default()
+    }
+
+    fn trim_encode_buffer(&mut self) {
+        if self.encode_buffer.capacity() > 256 {
+            self.encode_buffer = Vec::with_capacity(256);
+        }
     }
 
     pub fn flush(&mut self) -> Result<(), String> {
@@ -130,7 +138,7 @@ impl Context {
         child_ordering: Option<ChildOrder>,
         sibling_order_rank: Option<i32>,
     ) -> Result<u64, String> {
-        let mut data = Vec::with_capacity(64);
+        self.encode_buffer.clear();
 
         let uuid = self
             .synthetto
@@ -140,11 +148,14 @@ impl Context {
                 description,
                 child_ordering,
                 sibling_order_rank,
-                &mut data,
+                &mut self.encode_buffer,
             )
             .expect("prost encode should only fail if buffer is too small, but buffer is vec");
 
-        self.w.write_all(&data).map_err(ioerr_to_str)?;
+        self.w
+            .write_all(&self.encode_buffer)
+            .map_err(ioerr_to_str)?;
+        self.trim_encode_buffer();
 
         Ok(uuid)
     }
@@ -159,7 +170,7 @@ impl Context {
         child_ordering: Option<ChildOrder>,
         sibling_order_rank: Option<i32>,
     ) -> Result<u64, String> {
-        let mut data = Vec::with_capacity(64);
+        self.encode_buffer.clear();
 
         let uuid = self
             .synthetto
@@ -171,11 +182,14 @@ impl Context {
                 description,
                 child_ordering,
                 sibling_order_rank,
-                &mut data,
+                &mut self.encode_buffer,
             )
             .expect("prost encode should only fail if buffer is too small, but buffer is vec");
 
-        self.w.write_all(&data).map_err(ioerr_to_str)?;
+        self.w
+            .write_all(&self.encode_buffer)
+            .map_err(ioerr_to_str)?;
+        self.trim_encode_buffer();
 
         Ok(uuid)
     }
@@ -189,7 +203,7 @@ impl Context {
         child_ordering: Option<ChildOrder>,
         sibling_order_rank: Option<i32>,
     ) -> Result<u64, String> {
-        let mut data = Vec::with_capacity(64);
+        self.encode_buffer.clear();
 
         let uuid = self
             .synthetto
@@ -200,11 +214,14 @@ impl Context {
                 description,
                 child_ordering,
                 sibling_order_rank,
-                &mut data,
+                &mut self.encode_buffer,
             )
             .expect("prost encode should only fail if buffer is too small, but buffer is vec");
 
-        self.w.write_all(&data).map_err(ioerr_to_str)?;
+        self.w
+            .write_all(&self.encode_buffer)
+            .map_err(ioerr_to_str)?;
+        self.trim_encode_buffer();
 
         Ok(uuid)
     }
@@ -219,7 +236,7 @@ impl Context {
         child_ordering: Option<ChildOrder>,
         sibling_order_rank: Option<i32>,
     ) -> Result<u64, String> {
-        let mut data = Vec::with_capacity(64);
+        self.encode_buffer.clear();
 
         let unit = synthetto::CounterTrackUnit::from_string(unit_name);
         let uuid = self
@@ -232,11 +249,14 @@ impl Context {
                 description,
                 child_ordering,
                 sibling_order_rank,
-                &mut data,
+                &mut self.encode_buffer,
             )
             .expect("prost encode should only fail if buffer is too small, but buffer is vec");
 
-        self.w.write_all(&data).map_err(ioerr_to_str)?;
+        self.w
+            .write_all(&self.encode_buffer)
+            .map_err(ioerr_to_str)?;
+        self.trim_encode_buffer();
 
         Ok(uuid)
     }
@@ -274,11 +294,14 @@ impl Context {
             }
         }
 
-        let mut data = Vec::with_capacity(64);
+        self.encode_buffer.clear();
         let ts = self.convert_ts(ts);
-        synthetto::slice_begin_evt(track_uuid, ts, name, flows, &mut data)
+        synthetto::slice_begin_evt(track_uuid, ts, name, flows, &mut self.encode_buffer)
             .expect("prost encode should only fail if buffer is too small, but buffer is vec");
-        self.w.write_all(&data).map_err(ioerr_to_str)?;
+        self.w
+            .write_all(&self.encode_buffer)
+            .map_err(ioerr_to_str)?;
+        self.trim_encode_buffer();
 
         self.get_mut_track(track_uuid).active_slices.push(new_slice);
         Ok(())
@@ -290,11 +313,14 @@ impl Context {
         ts: f64,
         flows: Vec<u64>,
     ) -> Result<(), String> {
-        let mut data = Vec::with_capacity(64);
+        self.encode_buffer.clear();
         let ts = self.convert_ts(ts);
-        synthetto::slice_end_evt(track_uuid, ts, flows, &mut data)
+        synthetto::slice_end_evt(track_uuid, ts, flows, &mut self.encode_buffer)
             .expect("prost encode should only fail if buffer is too small, but buffer is vec");
-        self.w.write_all(&data).map_err(ioerr_to_str)?;
+        self.w
+            .write_all(&self.encode_buffer)
+            .map_err(ioerr_to_str)?;
+        self.trim_encode_buffer();
 
         let track = self.get_mut_track(track_uuid);
         track.active_slices.pop();
@@ -308,11 +334,15 @@ impl Context {
         name: Option<String>,
         flows: Vec<u64>,
     ) -> Result<(), String> {
-        let mut data = Vec::with_capacity(64);
+        self.encode_buffer.clear();
         let ts = self.convert_ts(ts);
-        synthetto::instant_evt(track_uuid, ts, name, flows, &mut data)
+        synthetto::instant_evt(track_uuid, ts, name, flows, &mut self.encode_buffer)
             .expect("prost encode should only fail if buffer is too small, but buffer is vec");
-        self.w.write_all(&data).map_err(ioerr_to_str)
+        self.w
+            .write_all(&self.encode_buffer)
+            .map_err(ioerr_to_str)?;
+        self.trim_encode_buffer();
+        Ok(())
     }
 
     pub fn counter_evt(
@@ -329,20 +359,23 @@ impl Context {
             return Ok(());
         }
 
-        let mut data = Vec::with_capacity(64);
+        self.encode_buffer.clear();
         match value {
             CounterValue::Int(val) => {
-                synthetto::int_counter_evt(track_uuid, ts, val, &mut data).expect(
+                synthetto::int_counter_evt(track_uuid, ts, val, &mut self.encode_buffer).expect(
                     "prost encode should only fail if buffer is too small, but buffer is vec",
                 );
             }
             CounterValue::Float(val) => {
-                synthetto::float_counter_evt(track_uuid, ts, val, &mut data).expect(
+                synthetto::float_counter_evt(track_uuid, ts, val, &mut self.encode_buffer).expect(
                     "prost encode should only fail if buffer is too small, but buffer is vec",
                 );
             }
         }
-        self.w.write_all(&data).map_err(ioerr_to_str)?;
+        self.w
+            .write_all(&self.encode_buffer)
+            .map_err(ioerr_to_str)?;
+        self.trim_encode_buffer();
 
         if compress {
             self.counters.insert(track_uuid, Counter::new(value));
