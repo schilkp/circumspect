@@ -80,15 +80,20 @@ package cspect_pkg;
       super.new(handle, uuid);
     endfunction
 
-    function void slice_begin(string name, uuid_t flow1 = 0, uuid_t flow2 = 0, uuid_t flow3 = 0);
-      int result = cspect_slice_begin(
+    function void slice_begin(string name, uuid_t flows[] = {});
+      int result;
+      if (flows.size() > 3) begin
+        $error("cspect: slice_begin supports maximum 3 flows, got %0d", flows.size());
+        return;
+      end
+      result = cspect_slice_begin(
           this.ctx_chandle,
           this.scope_uuid,
           $realtime,
           name,
-          flow1,
-          flow2,
-          flow3,
+          flows.size() > 0 ? flows[0] : 0,
+          flows.size() > 1 ? flows[1] : 0,
+          flows.size() > 2 ? flows[2] : 0,
           `CSPECT_REPLACE_OFF
       );
       if (result != 0) begin
@@ -97,17 +102,22 @@ package cspect_pkg;
       end
     endfunction
 
-    function void slice_set(string name, uuid_t flow1 = 0, uuid_t flow2 = 0, uuid_t flow3 = 0,
-                            bit compress = 0);
-      int replacement_behaviour = compress ? `CSPECT_REPLACE_IF_DIFFERENT : `CSPECT_REPLACE;
-      int result = cspect_slice_begin(
+    function void slice_set(string name, uuid_t flows[] = {}, bit compress = 0);
+      int replacement_behaviour;
+      int result;
+      if (flows.size() > 3) begin
+        $error("cspect: slice_set supports maximum 3 flows, got %0d", flows.size());
+        return;
+      end
+      replacement_behaviour = compress ? `CSPECT_REPLACE_IF_DIFFERENT : `CSPECT_REPLACE;
+      result = cspect_slice_begin(
           this.ctx_chandle,
           this.scope_uuid,
           $realtime,
           name,
-          flow1,
-          flow2,
-          flow3,
+          flows.size() > 0 ? flows[0] : 0,
+          flows.size() > 1 ? flows[1] : 0,
+          flows.size() > 2 ? flows[2] : 0,
           replacement_behaviour
       );
       if (result != 0) begin
@@ -116,18 +126,39 @@ package cspect_pkg;
       end
     endfunction
 
-    function void slice_end(uuid_t flow1 = 0, uuid_t flow2 = 0, uuid_t flow3 = 0);
-      int result = cspect_slice_end(
-          this.ctx_chandle, this.scope_uuid, $realtime, flow1, flow2, flow3
+    function void slice_end(uuid_t flows[] = {});
+      int result;
+      if (flows.size() > 3) begin
+        $error("cspect: slice_end supports maximum 3 flows, got %0d", flows.size());
+        return;
+      end
+      result = cspect_slice_end(
+          this.ctx_chandle,
+          this.scope_uuid,
+          $realtime,
+          flows.size() > 0 ? flows[0] : 0,
+          flows.size() > 1 ? flows[1] : 0,
+          flows.size() > 2 ? flows[2] : 0
       );
       if (result != 0) begin
         $error("cspect: cspect_slice_end failed with error code %0d", result);
       end
     endfunction
 
-    function void instant_evt(string name, uuid_t flow1 = 0, uuid_t flow2 = 0, uuid_t flow3 = 0);
-      int result = cspect_instant_evt(
-          this.ctx_chandle, this.scope_uuid, $realtime, name, flow1, flow2, flow3
+    function void instant_evt(string name, uuid_t flows[] = {});
+      int result;
+      if (flows.size() > 3) begin
+        $error("cspect: instant_evt supports maximum 3 flows, got %0d", flows.size());
+        return;
+      end
+      result = cspect_instant_evt(
+          this.ctx_chandle,
+          this.scope_uuid,
+          $realtime,
+          name,
+          flows.size() > 0 ? flows[0] : 0,
+          flows.size() > 1 ? flows[1] : 0,
+          flows.size() > 2 ? flows[2] : 0
       );
       if (result != 0) begin
         $error("cspect: cspect_instant_evt failed for event '%s' with error code %0d", name,
