@@ -17,8 +17,8 @@ cp ../../examples/annotations/out/trace_annotations.pftrace ./out/annotations.pf
 cp ../../examples/flows/out/trace_flows.pftrace ./out/flows.pftrace
 
 # Apply disasembly + addr2line annotations to annotations example trace:
-./annotations_elf/build.bash
-cargo run -- annotate ./out/annotations.pftrace --disasm --addr2line ./annotations_elf/program.elf -o ./out/annotations2.pftrace
+../../examples/annotations/annotations_elf/build.bash
+cargo run -- annotate ./out/annotations.pftrace --disasm --addr2line ../../examples/annotations/annotations_elf/program.elf -o ./out/annotations2.pftrace
 
 uv run ./check_simple.py ./out/simple.pftrace
 uv run ./check_counters.py ./out/counters.pftrace
