@@ -17,7 +17,7 @@ smart-punctuation = true
 mathjax-support = false
 site-url = "https://schilk.co/CircumSpect"
 git-repository-url = "https://github.com/schilkp/CircumSpect"
-edit-url-template = "https://github.com/schilkp/dynamatic/edit/main/CircumSpect"
+edit-url-template = "https://github.com/schilkp/CircumSpect/edit/main/CircumSpect"
 
 [output.html.search]
 limit-results = 40
