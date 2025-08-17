@@ -69,7 +69,7 @@ jobs:
           uv run autopep8 --diff --exit-code --recursive . --exclude third_party,verilator
 
   # ===--------------------------------------------------------------------=== #
-  # SytemVerilog format check
+  # SystemVerilog format check
   # ===--------------------------------------------------------------------=== #
   sytemverilog-fmt:
     runs-on: ubuntu-latest
