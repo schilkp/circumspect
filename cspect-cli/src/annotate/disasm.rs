@@ -34,7 +34,6 @@ impl DisasmAnnotater {
 pub fn new_rv32_translator() -> Disassembler {
     let decoder = Decoder::new(&[
         include_str!("../../../third_party/instruction-decoder/toml/RV32I.toml").to_string(),
-        include_str!("../../../third_party/instruction-decoder/toml/RV32I.toml").to_string(),
         include_str!("../../../third_party/instruction-decoder/toml/RV32M.toml").to_string(),
         include_str!("../../../third_party/instruction-decoder/toml/RV32A.toml").to_string(),
         include_str!("../../../third_party/instruction-decoder/toml/RV32F.toml").to_string(),
@@ -81,8 +80,6 @@ pub fn new_rv64_translator() -> Disassembler {
         include_str!("../../../third_party/instruction-decoder/toml/RV64_Zbb.toml").to_string(),
         include_str!("../../../third_party/instruction-decoder/toml/RV64_Zbkb.toml").to_string(),
         include_str!("../../../third_party/instruction-decoder/toml/RV64_Zbs.toml").to_string(),
-        include_str!("../../../third_party/instruction-decoder/toml/RV64_Zbkb.toml").to_string(),
-        include_str!("../../../third_party/instruction-decoder/toml/RV64_Zbs.toml").to_string(),
         include_str!("../../../third_party/instruction-decoder/toml/RV64_Zknd.toml").to_string(),
         include_str!("../../../third_party/instruction-decoder/toml/RV64_Zkne.toml").to_string(),
         include_str!("../../../third_party/instruction-decoder/toml/RV64_Zacas.toml").to_string(),
@@ -105,7 +102,6 @@ pub fn new_rv64_translator() -> Disassembler {
         include_str!("../../../third_party/instruction-decoder/toml/RV_Zbc.toml").to_string(),
         include_str!("../../../third_party/instruction-decoder/toml/RV_Zbkc.toml").to_string(),
         include_str!("../../../third_party/instruction-decoder/toml/RV_Zbkx.toml").to_string(),
-        include_str!("../../../third_party/instruction-decoder/toml/RV_Zfh.toml").to_string(),
         include_str!("../../../third_party/instruction-decoder/toml/RV_Zknh.toml").to_string(),
         include_str!("../../../third_party/instruction-decoder/toml/RV_Zksed.toml").to_string(),
         include_str!("../../../third_party/instruction-decoder/toml/RV_Zksh.toml").to_string(),
