@@ -5,22 +5,11 @@ set -ev
 SCRIPT_DIR="$(dirname "$0")"
 cd "$SCRIPT_DIR"
 
-# Clean:
-rm -rf out
-mkdir out
-
-# Compile + Run the examples, grab the outputs:
+# Compile + Run the examples to generate traces:
 python ../../examples/run.py
-cp ../../examples/simple/out/trace_simple.pftrace ./out/simple.pftrace
-cp ../../examples/counters/out/trace_counters.pftrace ./out/counters.pftrace
-cp ../../examples/annotations/out/trace_annotations.pftrace ./out/annotations.pftrace
-cp ../../examples/flows/out/trace_flows.pftrace ./out/flows.pftrace
 
-# Apply disasembly + addr2line annotations to annotations example trace:
-../../examples/annotations/annotations_elf/build.bash
-cargo run -- annotate ./out/annotations.pftrace --disasm --addr2line ../../examples/annotations/annotations_elf/program.elf -o ./out/annotations2.pftrace
-
-uv run ./check_simple.py ./out/simple.pftrace
-uv run ./check_counters.py ./out/counters.pftrace
-uv run ./check_annotations.py ./out/annotations2.pftrace
-uv run ./check_flows.py ./out/flows.pftrace
+# Run checking scripts:
+uv run ./check_simple.py ../../examples/out/trace_simple.pftrace
+uv run ./check_counters.py ../../examples/out/trace_counters.pftrace
+uv run ./check_annotations.py ../../examples/out/trace_annotations_post.pftrace
+uv run ./check_flows.py ../../examples/out/trace_flows.pftrace

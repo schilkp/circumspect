@@ -1,3 +1,10 @@
-files = ["../../include/cspect_pkg.sv", "./top.sv"]
+# general config:
+name = "Annotations"
+example_file = "./top.sv"
+trace_file = "trace_annotations_pre.pftrace"
+annotated_trace_file = "trace_annotations_post.pftrace"
 
+# compilation/run/annotation config:
+files = ["../../include/cspect_pkg.sv", "./top.sv"]
 extra_verilator_flags = ["-Wno-TIMESCALEMOD", "+incdir+../../include"]
+annotation_cmd = ["./annotate.bash"]

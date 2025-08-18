@@ -1,3 +1,10 @@
-files = ["../../include/cspect_pkg.sv", "./top.sv"]
+# general config:
+name = "CPU"
+example_file = "./top.sv"
+trace_file = "trace_cpu.pftrace"
+# annotated_trace_file =
 
+# compilation/run/annotation config:
+files = ["../../include/cspect_pkg.sv", "./top.sv"]
 extra_verilator_flags = ["-Wno-TIMESCALEMOD", "+incdir+../../include"]
+# annotation_cmd =

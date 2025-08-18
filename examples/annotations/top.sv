@@ -8,7 +8,7 @@ module top;
 
   initial begin
     // Initialize the cspect context
-    cspect = new("trace_annotations.pftrace");
+    cspect = new("trace_annotations_pre.pftrace");
 
     // Create a normal track:
     insns  = cspect.new_track("Insns", "RISC-V Instructions Executed");

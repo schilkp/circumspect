@@ -24,22 +24,25 @@ class Color:
 
 
 @dataclass
-class Testbench:
+class Example:
     name: str
     folder: Path
     files: list[Path]
     out_dir: Path
     extra_verilator_flags: list[str]
+    trace_file_name: str
+    annotated_trace_file_name: str | None
+    annotation_cmd: list[str] | None
 
 
 @dataclass
-class TestbenchResult:
+class ExampleResult:
     name: str
     ok: bool
     note: str | None
 
 
-def load_testbenches(script_dir: Path, requested_tests: list[str]) -> list[Testbench]:
+def load_examples(script_dir: Path, requested_tests: list[str]) -> list[Example]:
     # Find all subfolders containing example.toml
     folders = [
         folder for folder in script_dir.iterdir()
@@ -69,13 +72,22 @@ def load_testbenches(script_dir: Path, requested_tests: list[str]) -> list[Testb
         out_dir = folder / "out"
         out_dir.mkdir(exist_ok=True)
 
-        tbs.append(Testbench(
+        trace_file = cfg["trace_file"]
+
+        annotation_cmd = cfg.get("annotation_cmd", None)
+
+        annotated_trace_file = cfg.get("annotated_trace_file", None)
+
+        tbs.append(Example(
             name=folder.name,
             folder=folder.resolve(),
             files=files,
             out_dir=out_dir,
-            extra_verilator_flags=extra_verilator_flags)
-        )
+            extra_verilator_flags=extra_verilator_flags,
+            trace_file_name=trace_file,
+            annotated_trace_file_name=annotated_trace_file,
+            annotation_cmd=annotation_cmd
+        ))
 
     return tbs
 
@@ -117,54 +129,54 @@ def compile_cspect(script_dir: Path) -> tuple[bool, str]:
 # ===----------------------------------------------------------------------=== #
 
 
-def verilator_run_tbs(tbs: list[Testbench], trace: bool) -> list[TestbenchResult]:
+def verilator_run_examples(examples: list[Example], trace: bool) -> list[ExampleResult]:
     script_dir = Path(os.path.abspath(os.path.dirname(__file__)))
     common_cc_path = script_dir / "common_verilator_top.cc"
+    shared_out_dir = script_dir / "out"
+    shared_out_dir.mkdir(exist_ok=True)
 
     # Compile DPI library first
     dpi_success, dpi_info = compile_cspect(script_dir)
     if not dpi_success:
         print(f"{Color.ERR}Failed to compile DPI library:{Color.END}\n{dpi_info}")
-        return [TestbenchResult(name=tb.name, ok=False, note="DPI library compilation failed") for tb in tbs]
+        return [ExampleResult(name=example.name, ok=False, note="DPI library compilation failed") for example in examples]
 
     results = []
 
     compiled_tests = []
 
     print()
-    print("Compiling testbenches..")
-    for tb in tbs:
-        (name, out_dir, success, info) = verilator_compile_testbench(
-            tb, common_cc_path, dpi_info)
+    print("Compiling examples..")
+    for example in examples:
+        (name, _, success, info) = verilator_build_example(
+            example, common_cc_path, dpi_info)
         if success:
             print(f"  {name}: {Color.OK}OK{Color.END}")
-            compiled_tests.append((name, out_dir, info))
+            compiled_tests.append((info, example))
         else:
             print(f"  {name}: {Color.ERR}FAIL{Color.END}\n{info}")
-            results.append(TestbenchResult(
-                name=tb.name, ok=False, note="Failed to compile"))
+            results.append(ExampleResult(
+                name=example.name, ok=False, note="Failed to compile"))
 
     print()
-    print("Running testbenches..")
+    print("Running examples..")
     with concurrent.futures.ThreadPoolExecutor() as executor:
         run_results = list(executor.map(lambda nb:
-                                        verilator_run_test_binary(
-                                            *nb, trace=trace),
-                                        compiled_tests))
+                                        verilator_run_example(*nb, shared_out_dir=shared_out_dir, trace=trace), compiled_tests))
 
     for name, ok, output in run_results:
         status = f"{Color.OK}PASS{Color.END}" if ok else f"{Color.ERR}FAIL{Color.END}"
         print(f"  {name}: {status}")
         if not ok:
             print(f"    Output/Error:\n{output.strip()}")
-        results.append(TestbenchResult(name=name, ok=ok,
-                       note=None if ok else "TB failed"))
+        results.append(ExampleResult(name=name, ok=ok,
+                       note=None if ok else "Example failed"))
 
     return results
 
 
-def verilator_compile_testbench(tb: Testbench, common_cc_path: Path, dpi_lib_path: str):
-    obj_dir = tb.out_dir / "obj_dir"
+def verilator_build_example(example: Example, common_cc_path: Path, dpi_lib_path: str):
+    obj_dir = example.out_dir / "obj_dir"
 
     # We always clean-build, since verilator does not re-link on DPI
     # lib changes.
@@ -184,68 +196,110 @@ def verilator_compile_testbench(tb: Testbench, common_cc_path: Path, dpi_lib_pat
         "--threads", "1",
         "-CFLAGS", "-O3",
         "-LDFLAGS", dpi_lib_path,
-        *tb.extra_verilator_flags,
-        *tb.files,
+        *example.extra_verilator_flags,
+        *example.files,
         str(common_cc_path),
         "--Mdir", str(obj_dir)
     ]
 
     verilate_result = subprocess.run(
-        verilator_cmd, cwd=tb.folder, capture_output=True, text=True
+        verilator_cmd, cwd=example.folder, capture_output=True, text=True
     )
-    (tb.out_dir / "verilate.stdout").write_text(verilate_result.stdout)
-    (tb.out_dir / "verilate.stderr").write_text(verilate_result.stderr)
+    (example.out_dir / "verilate.stdout").write_text(verilate_result.stdout)
+    (example.out_dir / "verilate.stderr").write_text(verilate_result.stderr)
     if verilate_result.returncode != 0:
-        return (tb.name, tb.out_dir, False, f"Verilator error:\n{verilate_result.stderr}")
+        return (example.name, example.out_dir, False, f"Verilator error:\n{verilate_result.stderr}")
 
     # Run make to build binary
     make_cmd = ["make", "-C", str(obj_dir), "-f",
                 f"V{TOP_NAME}.mk", "-j", str(os.cpu_count())]
     make_result = subprocess.run(
-        make_cmd, cwd=tb.folder, capture_output=True, text=True
+        make_cmd, cwd=example.folder, capture_output=True, text=True
     )
-    (tb.out_dir / "make.stdout").write_text(make_result.stdout)
-    (tb.out_dir / "make.stderr").write_text(make_result.stderr)
+    (example.out_dir / "make.stdout").write_text(make_result.stdout)
+    (example.out_dir / "make.stderr").write_text(make_result.stderr)
     if make_result.returncode != 0:
-        return (tb.name, tb.out_dir, False, f"Make error:\n{make_result.stderr}")
+        return (example.name, example.out_dir, False, f"Make error:\n{make_result.stderr}")
 
     # Path to test binary
     binary = obj_dir / f"V{TOP_NAME}"
-    return (tb.name, tb.out_dir, True, str(binary))
+    return (example.name, example.out_dir, True, str(binary))
 
 
-def verilator_run_test_binary(name, out_path, binary_path, trace=False):
+def verilator_run_example(binary_path, example: Example, shared_out_dir: Path, trace=False):
+    log = ""
     try:
+
+        # Run Verilated Binary:
         env = os.environ.copy()
         if trace:
             env["VERILATOR_TRACE"] = "1"
-        result = subprocess.run(
+
+        verilator_result = subprocess.run(
             [str(binary_path)],
             capture_output=True,
             text=True,
-            cwd=out_path,
+            cwd=example.out_dir,
             env=env
         )
-        (out_path / "tb.stdout").write_text(result.stdout)
-        (out_path / "tb.stderr").write_text(result.stderr)
-        success = result.returncode == 0
-        return (name, success, result.stdout + result.stderr)
+        (example.out_dir / "verilator.stdout").write_text(verilator_result.stdout)
+        (example.out_dir / "verilator.stderr").write_text(verilator_result.stderr)
+        log += verilator_result.stdout
+        log += verilator_result.stderr
+
+        if verilator_result.returncode != 0:
+            raise Exception(f"Verilator Exit Code: {verilator_result.returncode}")
+
+        # Grab trace file:
+        trace_file_src = example.out_dir / example.trace_file_name
+        trace_file_dest = shared_out_dir / example.trace_file_name
+        if not trace_file_src.exists():
+            raise Exception(f"Trace file {trace_file_src} does not exist")
+        shutil.copy(trace_file_src, trace_file_dest)
+
+        # Annotate
+        if example.annotation_cmd:
+            annotate_result = subprocess.run(
+                example.annotation_cmd,
+                capture_output=True,
+                text=True,
+                cwd=example.folder,
+                env=env
+            )
+            (example.out_dir / "annotate.stdout").write_text(annotate_result.stdout)
+            (example.out_dir / "annotate.stderr").write_text(annotate_result.stderr)
+            log += annotate_result.stdout
+            log += annotate_result.stderr
+
+            if annotate_result.returncode != 0:
+                raise Exception(f"Annotate Exit Code: {annotate_result.returncode}")
+
+        # Grab annotated file:
+        if example.annotated_trace_file_name:
+            trace_file_src = example.out_dir / example.annotated_trace_file_name
+            trace_file_dest = shared_out_dir / example.annotated_trace_file_name
+            if not trace_file_src.exists():
+                raise Exception(f"Annotated trace file {trace_file_src} does not exist")
+            shutil.copy(trace_file_src, trace_file_dest)
+
+        return (example.name, True, log)
+
     except Exception as e:
-        return (name, False, str(e))
+        return (example.name, False, log + str(e))
 
 # ===----------------------------------------------------------------------=== #
 # Utils
 # ===----------------------------------------------------------------------=== #
 
 
-def clean(tbs: list[Testbench]):
+def clean(examples: list[Example]):
     print("Cleaning...")
-    for tb in tbs:
-        if tb.out_dir.exists():
-            shutil.rmtree(tb.out_dir)
+    for example in examples:
+        if example.out_dir.exists():
+            shutil.rmtree(example.out_dir)
 
 
-def print_test_summary(results: list[TestbenchResult]) -> int:
+def print_test_summary(results: list[ExampleResult]) -> int:
 
     print()
     print("Summary:")
@@ -271,6 +325,13 @@ def print_test_summary(results: list[TestbenchResult]) -> int:
 # ===----------------------------------------------------------------------=== #
 
 
+def run_all_examples():
+    script_dir = Path(os.path.abspath(os.path.dirname(__file__)))
+    examples = load_examples(script_dir, [])
+    results = verilator_run_examples(examples, False)
+    exit(print_test_summary(results))
+
+
 def main():
     parser = argparse.ArgumentParser(description="Run component tests.")
     parser.add_argument(
@@ -291,12 +352,12 @@ def main():
     args = parser.parse_args()
 
     script_dir = Path(os.path.abspath(os.path.dirname(__file__)))
-    tbs = load_testbenches(script_dir, args.tests)
+    examples = load_examples(script_dir, args.tests)
 
     if args.clean:
-        clean(tbs)
+        clean(examples)
     else:
-        results = verilator_run_tbs(tbs, args.trace)
+        results = verilator_run_examples(examples, args.trace)
         exit(print_test_summary(results))
 
 
