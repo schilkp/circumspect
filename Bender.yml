@@ -10,7 +10,7 @@ sources:
   - include_dirs:
       - include
     files:
-      - target: circumspect
+      - target: cspect
         include_dirs:
           - include
         files:
