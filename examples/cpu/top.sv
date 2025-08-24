@@ -364,7 +364,7 @@ module cpu (
   end
 
   // Tracing:
-  always_ff @(posedge clk_i) begin
+  always @(posedge clk_i) begin
     track_reg_a.slice_set($sformatf("0x%02x", r_a_d), .compress(1));
     track_reg_b.slice_set($sformatf("0x%02x", r_b_d), .compress(1));
     track_pc.slice_set($sformatf("0x%02x", pc_d), .compress(1));
