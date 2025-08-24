@@ -8,3 +8,7 @@ trace_file = "trace_simple.pftrace"
 files = ["../../include/cspect_pkg.sv", "./top.sv"]
 extra_verilator_flags = ["-Wno-TIMESCALEMOD", "+incdir+../../include"]
 # annotation_cmd =
+
+# docs:
+sort_key = 0
+text_start = ""

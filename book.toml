@@ -9,8 +9,12 @@ src = "docs/"
 build-dir = "build/mdbook"
 create-missing = false
 
+[preprocessor.docs]
+command = "uv run ./examples/examples_to_mdbook.py"
+
 [preprocessor.alerts]
 renderers = ["html", "linkcheck"]
+after = ["docs"]
 
 [output.html]
 smart-punctuation = true

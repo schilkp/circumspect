@@ -8,3 +8,7 @@ annotated_trace_file = "trace_annotations_post.pftrace"
 files = ["../../include/cspect_pkg.sv", "./top.sv"]
 extra_verilator_flags = ["-Wno-TIMESCALEMOD", "+incdir+../../include"]
 annotation_cmd = ["./annotate.bash"]
+
+# docs:
+sort_key = 4
+text_start = ""
