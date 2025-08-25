@@ -20,7 +20,7 @@ module top;
 
     #10;
     // Start a slice on the "producer" track:
-    producer_track.slice_begin("produce_data", {data_flow});
+    producer_track.slice_begin("produce_data");
 
     #30;
     // End producer slice, while attaching a flow to the end of the slice.
@@ -28,12 +28,12 @@ module top;
 
     #10;
 
-    // Start the second slice on consumer track, attaching the flow.,
+    // Start the second slice on consumer track, attaching the flow.
     consumer_track.slice_begin("consume_data", {data_flow});
 
     #25;
     // End the second slice
-    consumer_track.slice_end({data_flow});
+    consumer_track.slice_end();
 
     cspect.finish();
 
