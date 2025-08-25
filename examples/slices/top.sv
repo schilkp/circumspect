@@ -10,7 +10,7 @@ module top;
 
   initial begin
     // Initialize the cspect context
-    cspect = new("trace_simple.pftrace");
+    cspect = new("trace_slices.pftrace");
 
     // Create tracks with hierarchical structure
     cpu_track = cspect.new_track("CPU", "CPU execution trace");

@@ -1,7 +1,7 @@
 # general config:
-name = "Simple"
+name = "Slices"
 example_file = "./top.sv"
-trace_file = "trace_simple.pftrace"
+trace_file = "trace_slices.pftrace"
 # annotated_trace_file =
 
 # compilation/run/annotation config:
