@@ -10,5 +10,4 @@ extra_verilator_flags = ["-Wno-TIMESCALEMOD", "+incdir+../../include"]
 annotation_cmd = ["./annotate.bash"]
 
 # docs:
-sort_key = 4
-text_start = ""
+docs_sort_key = 4

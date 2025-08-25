@@ -59,10 +59,12 @@ function openTraceInPerfetto(base64TraceData, traceTitle = 'Trace') {
 class ExampleToml(TypedDict):
     name: str
     example_file: str
-    text_start: str
+    docs_sort_key: NotRequired[int]
+    docs_blurb: NotRequired[str]
+    docs_text: NotRequired[str]
+    docs_footer: NotRequired[str]
     trace_file: NotRequired[str]
     annotated_trace_file: NotRequired[str]
-    sort_key: int
 
 
 def find_examples() -> list[tuple[Path, ExampleToml]]:
@@ -106,11 +108,8 @@ def include_perfetto_trace(trace: Path, name: str) -> tuple[str, str]:
     return (data, link)
 
 
-def render_example_content(example_folder: Path, info: ExampleToml, strict: bool) -> str:
-    page = [f"# {info['name']}"]
-    page += [""]
-    page += [info['text_start']]
-    page += [""]
+def render_perfetto_integration(info: ExampleToml, strict: bool) -> list[str]:
+    page = []
 
     # Include open-in-perfetto script:
     page += [PERFETTO_SCRIPT]
@@ -167,13 +166,29 @@ def render_example_content(example_folder: Path, info: ExampleToml, strict: bool
         page += ["> Example trace outputs are missing: {", ".join(missing_traces)}"]
         page += []
 
+    return page
+
+
+def render_example_content(example_folder: Path, info: ExampleToml, strict: bool) -> str:
+    page = [f"# {info['name']}"]
+    page += [info.get("docs_blurb", "")]
+    page += [""]
+    page += render_perfetto_integration(info, strict)
+
+    if "docs_text" in info:
+        page = [f"## Overview"]
+        page += [info.get("docs_text", "")]
+
+    page += [f"## Example Code"]
     example_path = example_folder.joinpath(info['example_file'])
     with open(example_path, "r") as example_file:
         example_code = example_file.read()
-
     page += ["```verilog"]
     page += [example_code]
     page += ["```"]
+
+    page += []
+    page += [info.get("docs_footer", "")]
 
     return "\n".join(page)
 
@@ -221,7 +236,7 @@ if __name__ == '__main__':
 
     # Find examples and render to pages:
     examples = find_examples()
-    examples.sort(key=lambda item: item[1]["sort_key"])
+    examples.sort(key=lambda item: item[1].get("docs_sort_key", 0))
     for num, (folder, info) in enumerate(examples):
         ch_sub_items.append(render_example(folder, info, strict_mode, ch_num, ch_name, num))
 
