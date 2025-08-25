@@ -13,6 +13,33 @@ from typing import NotRequired, TypedDict
 
 PERFETTO_SCRIPT = """
 <script>
+
+function to_code_block(prefix, msg) {
+    const codeBlock = document.getElementById('perfetto-log-block');
+    codeBlock.style.display = 'block';
+    if (codeBlock.innerHTML.trim() !== '') {
+        codeBlock.innerHTML += '<br>';
+    }
+    codeBlock.innerHTML += prefix;
+    codeBlock.innerHTML += " ";
+    codeBlock.innerHTML += msg;
+}
+
+function info(msg) {
+    console.info(msg);
+    to_code_block("> ", msg);
+}
+
+function warn(msg) {
+    console.warn(msg);
+    to_code_block("> ⚠️", msg);
+}
+
+function error(msg) {
+    console.error(msg);
+    to_code_block("> ❗", msg);
+}
+
 function openTraceInPerfetto(base64TraceData, traceTitle = 'Trace') {
   const PERFETTO_ORIGIN = 'https://ui.perfetto.dev';
 
@@ -27,19 +54,21 @@ function openTraceInPerfetto(base64TraceData, traceTitle = 'Trace') {
   // Open Perfetto UI
   const win = window.open(PERFETTO_ORIGIN);
   if (!win) {
-    console.error('Popup blocked. Please allow popups for this site.');
+    error('popup blocked. please allow popups for this site.');
     return;
   }
+  info("opened perfetto.");
 
   // PING/PONG handshake
   const timer = setInterval(() => win.postMessage('PING', PERFETTO_ORIGIN), 50);
 
   const onMessageHandler = (evt) => {
-    if (evt.data !== 'PONG') return;
+    if (evt.data !== 'PONG')  return;
 
     // UI is ready, send trace data
     clearInterval(timer);
     window.removeEventListener('message', onMessageHandler);
+    info("perfetto ready.");
 
     win.postMessage({
       perfetto: {
@@ -48,6 +77,7 @@ function openTraceInPerfetto(base64TraceData, traceTitle = 'Trace') {
         fileName: `${traceTitle}.trace`
       }
     }, PERFETTO_ORIGIN);
+    info("served trace.");
   };
 
   window.addEventListener('message', onMessageHandler);
@@ -147,11 +177,13 @@ def render_perfetto_integration(info: ExampleToml, strict: bool) -> list[str]:
 
     match (trace_file_link, annotated_trace_file_link):
         case (str(), None):
-            page += [""]
-            page += [f"Click {trace_file_link} to view the output of this example in Perfetto."]
+            page += ["> [!TIP]"]
+            page += [f"> Click {trace_file_link} to view the output of this example in Perfetto."]
+            page += [f"<code id=\"perfetto-log-block\" class=\"language-text hljs\" style=\"display: none;\"> </code>"]
         case (str(), str()):
-            page += [""]
-            page += [f"Click {trace_file_link} to view the raw output and {annotated_trace_file_link} to view the annotated output of this example in Perfetto."]
+            page += ["> [!TIP]"]
+            page += [f"> Click {trace_file_link} to view the raw output and {annotated_trace_file_link} to view the annotated output of this example in Perfetto."]
+            page += [f"<code id=\"perfetto-log-block\" class=\"language-text hljs\" style=\"display: none;\"> </code>"]
         case (None, None):
             pass
         case (None, str()):
