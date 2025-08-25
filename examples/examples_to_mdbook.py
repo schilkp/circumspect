@@ -171,7 +171,7 @@ def render_example_content(example_folder: Path, info: ExampleToml, strict: bool
     with open(example_path, "r") as example_file:
         example_code = example_file.read()
 
-    page += ["```systemverilog"]
+    page += ["```verilog"]
     page += [example_code]
     page += ["```"]
 

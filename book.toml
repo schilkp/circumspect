@@ -17,6 +17,7 @@ renderers = ["html", "linkcheck"]
 after = ["docs"]
 
 [output.html]
+theme = "./docs/theme"
 smart-punctuation = true
 mathjax-support = false
 site-url = "https://schilk.co/CircumSpect"
