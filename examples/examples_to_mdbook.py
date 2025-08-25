@@ -208,7 +208,7 @@ def render_example_content(example_folder: Path, info: ExampleToml, strict: bool
     page += render_perfetto_integration(info, strict)
 
     if "docs_text" in info:
-        page = [f"## Overview"]
+        page += [f"## Overview"]
         page += [info.get("docs_text", "")]
 
     page += [f"## Example Code"]
