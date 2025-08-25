@@ -1,4 +1,3 @@
-// Timescale for simulation
 `timescale 1ns / 1ps
 
 //--------------------------------------------------------------------------
@@ -27,7 +26,6 @@ typedef enum logic [4:0] {
   OP_HALT   = 5'h13  // Halt execution
 } opcode_t;
 
-// Combine opcode and literal into a 16-bit instruction
 `define INSTR(opcode, literal) {opcode, 3'b000, literal}
 
 //--------------------------------------------------------------------------

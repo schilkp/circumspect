@@ -11,3 +11,35 @@ annotation_cmd = ["./annotate.bash"]
 
 # docs:
 docs_sort_key = 4
+docs_blurb = """
+CircumSpect supports annotating traces in a post-processing step, replacing all values that feature an annotation marker.
+"""
+docs_text = """
+
+The example below demonstrates the disassembler and addr2line annotators.
+
+### Disassembler
+
+The disassembler annotator looks for values marked with a `$da-rv32` or `$da-rv64` marker, 
+and attempts to disassemble them as RISCV RV32 or RV64 instruction respectively.
+
+Usage:
+```bash
+cspect annotate --disasm input.pftrace
+```
+
+### addr2line
+
+The addr2line annotator looks for values marked with a `$a2l` marker, and attempts to 
+resolve them to a source-file location and function name given the DWARF debug information
+in the provided ELF file.
+
+Usage:
+```bash
+cspect annotate --addr2line ./my_program.elf input.pftrace
+```
+
+> [!TIP]
+> You can run multiple annotators at once by providing multiple annotator flags. 
+> See `cspect annotate --help` for more information
+"""
