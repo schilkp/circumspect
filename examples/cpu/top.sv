@@ -350,7 +350,8 @@ module cpu (
   cspect_pkg::track track_stack;
 
   // Setup:
-  always @(cspect_ready_i) begin
+  initial begin
+    wait (cspect_ready_i.triggered);
     track_reg_a = cspect_scope_i.new_track("Register A");
     track_reg_b = cspect_scope_i.new_track("Register B");
     track_pc = cspect_scope_i.new_track("Program Counter");
@@ -505,7 +506,8 @@ module ram (
   cspect_pkg::track track_ops;
 
   // Setup:
-  always @(cspect_ready_i) begin
+  initial begin
+    wait (cspect_ready_i.triggered);
     // Parent track with explicit child ordering:
     // (children are ordered by their child_order_rank property.
     track_content = cspect_scope_i.new_track("RAM Content", .child_ordering(cspect_pkg::Explicit));
