@@ -48,13 +48,17 @@ impl Default for Synthetto {
 
 impl Synthetto {
     pub fn new() -> Self {
-        Synthetto { uuid_cnt: 1 }
+        Synthetto {
+            uuid_cnt: 0x023DEAD000,
+        }
     }
 
     fn next_uuid(&mut self) -> u64 {
         let uuid = self.uuid_cnt;
         self.uuid_cnt += 1;
-        uuid
+        // Grab LSBs and move them to the MSBs:
+        let lsbs = uuid & 0xFFF;
+        (uuid >> 12) | (lsbs << 52)
     }
 
     pub fn new_flow(&mut self) -> u64 {
