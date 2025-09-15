@@ -81,7 +81,7 @@ package cspect_pkg;
     endfunction
 
     function void slice_begin(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {});
-      int result;
+      automatic int result;
       if (flows.size() > 3) begin
         $error("cspect: slice_begin supports maximum 3 flows, got %0d", flows.size());
         return;
@@ -111,8 +111,8 @@ package cspect_pkg;
 
     function void slice_set(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {},
                             bit compress = 0);
-      int replacement_behaviour;
-      int result;
+      automatic int replacement_behaviour;
+      automatic int result;
       if (flows.size() > 3) begin
         $error("cspect: slice_set supports maximum 3 flows, got %0d", flows.size());
         return;
@@ -142,7 +142,7 @@ package cspect_pkg;
     endfunction
 
     function void slice_end(uuid_t flows[] = {}, uuid_t flows_end[] = {}, bit force_end = 0);
-      int result;
+      automatic int result;
       if (flows.size() > 3) begin
         $error("cspect: slice_end supports maximum 3 flows, got %0d", flows.size());
         return;
@@ -169,7 +169,7 @@ package cspect_pkg;
     endfunction
 
     function void instant_evt(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {});
-      int result;
+      automatic int result;
       if (flows.size() > 3) begin
         $error("cspect: instant_evt supports maximum 3 flows, got %0d", flows.size());
         return;
@@ -206,7 +206,9 @@ package cspect_pkg;
     endfunction
 
     function void log_int(longint unsigned val, bit compress = 0);
-      int result = cspect_int_counter_evt(
+      automatic
+      int
+      result = cspect_int_counter_evt(
           this.ctx_chandle, this.counter_uuid, $realtime, val, compress
       );
       if (result != 0) begin
@@ -215,7 +217,9 @@ package cspect_pkg;
     endfunction
 
     function void log_float(real val, bit compress = 0);
-      int result = cspect_float_counter_evt(
+      automatic
+      int
+      result = cspect_float_counter_evt(
           this.ctx_chandle, this.counter_uuid, $realtime, val, compress
       );
       if (result != 0) begin
@@ -267,7 +271,7 @@ package cspect_pkg;
     endfunction
 
     function void finish();
-      int result;
+      automatic int result;
       result = cspect_finish(this.ctx_chandle);
       if (result != 0) begin
         $error("cspect: cspect_finish failed with error code %0d", result);
@@ -276,7 +280,7 @@ package cspect_pkg;
     endfunction
 
     function void flush();
-      int result = cspect_flush(this.ctx_chandle);
+      automatic int result = cspect_flush(this.ctx_chandle);
       if (result != 0) begin
         $error("cspect: cspect_flush failed with error code %0d", result);
       end
