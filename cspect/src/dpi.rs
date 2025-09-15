@@ -9,6 +9,74 @@ use std::{
     sync::Mutex,
 };
 
+// ==== UUID Vector Object =====================================================
+
+// Type backing  uuid_arr chandles
+type UUIDVecCHandle = Mutex<Vec<u64>>;
+
+#[unsafe(no_mangle)]
+pub extern "C" fn cspect_uuid_vec_new(
+    uuid0: c_ulonglong,
+    uuid1: c_ulonglong,
+    uuid2: c_ulonglong,
+    uuid3: c_ulonglong,
+) -> *mut c_void {
+    let mut vec = Vec::with_capacity(8);
+    for uuid in [uuid0, uuid1, uuid2, uuid3] {
+        if let Some(uuid) = recover_optional_uuid(uuid) {
+            vec.push(uuid);
+        }
+    }
+    let handle = Box::new(Mutex::new(vec));
+    Box::into_raw(handle) as *mut c_void
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn cspect_uuid_vec_append(
+    uuid_vec: *mut c_void,
+    uuid0: c_ulonglong,
+    uuid1: c_ulonglong,
+    uuid2: c_ulonglong,
+    uuid3: c_ulonglong,
+) -> c_int {
+    // Re-introduce chandle objects into the rust memory model.
+    if uuid_vec.is_null() {
+        println!("cspect: uuid_vec is nullptr!");
+        return 1;
+    }
+
+    let vec: Box<Mutex<Vec<u64>>> = unsafe { Box::from_raw(uuid_vec as *mut UUIDVecCHandle) };
+
+    {
+        let mut vec = vec.lock().unwrap();
+        for uuid in [uuid0, uuid1, uuid2, uuid3] {
+            if let Some(uuid) = recover_optional_uuid(uuid) {
+                vec.push(uuid);
+            }
+        }
+        drop(vec); // re-lock
+    }
+
+    // Don't keep ownership:
+    let _ = Box::into_raw(vec) as *mut c_void;
+
+    0
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn cspect_uuid_vec_delete(uuid_vec: *mut c_void) -> c_int {
+    if uuid_vec.is_null() {
+        println!("cspect: uuid_vec is nullptr!");
+        return 1;
+    }
+
+    // re-introduce into rust memroy model and drop it:
+    let vec: Box<Mutex<Vec<u64>>> = unsafe { Box::from_raw(uuid_vec as *mut UUIDVecCHandle) };
+    drop(vec);
+
+    0
+}
+
 // ==== Context Object Management ==============================================
 
 // Type backing  cspect_ctx chandles
@@ -194,12 +262,16 @@ pub extern "C" fn cspect_slice_begin(
     parent_uuid: c_ulonglong,
     ts: c_double,
     name: *const c_char,
+    flow0: c_ulonglong,
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    flow_others: *mut c_void,
+    flow_end0: c_ulonglong,
     flow_end1: c_ulonglong,
     flow_end2: c_ulonglong,
     flow_end3: c_ulonglong,
+    flow_end_others: *mut c_void,
     replacement_behaviour: c_int,
 ) -> c_int {
     object_function_body_err_ret!(
@@ -208,12 +280,16 @@ pub extern "C" fn cspect_slice_begin(
         parent_uuid,
         ts,
         name,
+        flow0,
         flow1,
         flow2,
         flow3,
+        flow_others,
+        flow_end0,
         flow_end1,
         flow_end2,
         flow_end3,
+        flow_end_others,
         replacement_behaviour,
     )
 }
@@ -223,38 +299,24 @@ fn cspect_slice_begin_actual(
     parent_uuid: c_ulonglong,
     ts: c_double,
     name: *const c_char,
+    flow0: c_ulonglong,
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    flow_others: *mut c_void,
+    flow_end0: c_ulonglong,
     flow_end1: c_ulonglong,
     flow_end2: c_ulonglong,
     flow_end3: c_ulonglong,
+    flow_end_others: *mut c_void,
     replacement_behaviour: c_int,
 ) -> Result<(), String> {
     let parent_uuid = recover_required_uuid(parent_uuid)?;
     let ts: f64 = ts;
     let name = unsafe { recover_optional_cstr(name)?.map(String::from) };
     let replace_behaviour = recover_replacement_behaviour(replacement_behaviour)?;
-    let mut flows = vec![];
-    if let Some(x) = recover_optional_uuid(flow1) {
-        flows.push(x)
-    }
-    if let Some(x) = recover_optional_uuid(flow2) {
-        flows.push(x)
-    }
-    if let Some(x) = recover_optional_uuid(flow3) {
-        flows.push(x)
-    }
-    let mut flows_end = vec![];
-    if let Some(x) = recover_optional_uuid(flow_end1) {
-        flows_end.push(x)
-    }
-    if let Some(x) = recover_optional_uuid(flow_end2) {
-        flows_end.push(x)
-    }
-    if let Some(x) = recover_optional_uuid(flow_end3) {
-        flows_end.push(x)
-    }
+    let flows = recover_uuid_vec(flow0, flow1, flow2, flow3, flow_others);
+    let flows_end = recover_uuid_vec(flow_end0, flow_end1, flow_end2, flow_end3, flow_end_others);
     ctx.slice_begin_evt(parent_uuid, ts, name, flows, flows_end, replace_behaviour)
 }
 
@@ -263,12 +325,16 @@ pub extern "C" fn cspect_slice_end(
     cspect_ctx: *mut c_void,
     parent_uuid: c_ulonglong,
     ts: c_double,
+    flow0: c_ulonglong,
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    flow_others: *mut c_void,
+    flow_end0: c_ulonglong,
     flow_end1: c_ulonglong,
     flow_end2: c_ulonglong,
     flow_end3: c_ulonglong,
+    flow_end_others: *mut c_void,
     force: svBit,
 ) -> c_int {
     object_function_body_err_ret!(
@@ -276,12 +342,16 @@ pub extern "C" fn cspect_slice_end(
         cspect_ctx,
         parent_uuid,
         ts,
+        flow0,
         flow1,
         flow2,
         flow3,
+        flow_others,
+        flow_end0,
         flow_end1,
         flow_end2,
         flow_end3,
+        flow_end_others,
         force
     )
 }
@@ -290,36 +360,22 @@ fn cspect_slice_end_actual(
     ctx: &mut Context,
     parent_uuid: c_ulonglong,
     ts: c_double,
+    flow0: c_ulonglong,
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    flow_others: *mut c_void,
+    flow_end0: c_ulonglong,
     flow_end1: c_ulonglong,
     flow_end2: c_ulonglong,
     flow_end3: c_ulonglong,
+    flow_end_others: *mut c_void,
     force: svBit,
 ) -> Result<(), String> {
     let parent_uuid = recover_required_uuid(parent_uuid)?;
     let ts: f64 = ts;
-    let mut flows = vec![];
-    if let Some(x) = recover_optional_uuid(flow1) {
-        flows.push(x)
-    }
-    if let Some(x) = recover_optional_uuid(flow2) {
-        flows.push(x)
-    }
-    if let Some(x) = recover_optional_uuid(flow3) {
-        flows.push(x)
-    }
-    let mut flows_end = vec![];
-    if let Some(x) = recover_optional_uuid(flow_end1) {
-        flows_end.push(x)
-    }
-    if let Some(x) = recover_optional_uuid(flow_end2) {
-        flows_end.push(x)
-    }
-    if let Some(x) = recover_optional_uuid(flow_end3) {
-        flows_end.push(x)
-    }
+    let flows = recover_uuid_vec(flow0, flow1, flow2, flow3, flow_others);
+    let flows_end = recover_uuid_vec(flow_end0, flow_end1, flow_end2, flow_end3, flow_end_others);
     let force = recover_bool(force);
     ctx.slice_end_evt(parent_uuid, ts, flows, flows_end, force)
 }
@@ -330,12 +386,16 @@ pub extern "C" fn cspect_instant_evt(
     parent_uuid: c_ulonglong,
     ts: c_double,
     name: *const c_char,
+    flow0: c_ulonglong,
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    flow_others: *mut c_void,
+    flow_end0: c_ulonglong,
     flow_end1: c_ulonglong,
     flow_end2: c_ulonglong,
     flow_end3: c_ulonglong,
+    flow_end_others: *mut c_void,
 ) -> c_int {
     object_function_body_err_ret!(
         cspect_instant_evt_actual,
@@ -343,12 +403,16 @@ pub extern "C" fn cspect_instant_evt(
         parent_uuid,
         ts,
         name,
+        flow0,
         flow1,
         flow2,
         flow3,
+        flow_others,
+        flow_end0,
         flow_end1,
         flow_end2,
         flow_end3,
+        flow_end_others
     )
 }
 
@@ -357,36 +421,22 @@ fn cspect_instant_evt_actual(
     parent_uuid: c_ulonglong,
     ts: c_double,
     name: *const c_char,
+    flow0: c_ulonglong,
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    flow_others: *mut c_void,
+    flow_end0: c_ulonglong,
     flow_end1: c_ulonglong,
     flow_end2: c_ulonglong,
     flow_end3: c_ulonglong,
+    flow_end_others: *mut c_void,
 ) -> Result<(), String> {
     let parent_uuid = recover_required_uuid(parent_uuid)?;
     let ts: f64 = ts;
     let name = unsafe { recover_optional_cstr(name)?.map(String::from) };
-    let mut flows = vec![];
-    if let Some(x) = recover_optional_uuid(flow1) {
-        flows.push(x)
-    }
-    if let Some(x) = recover_optional_uuid(flow2) {
-        flows.push(x)
-    }
-    if let Some(x) = recover_optional_uuid(flow3) {
-        flows.push(x)
-    }
-    let mut flows_end = vec![];
-    if let Some(x) = recover_optional_uuid(flow_end1) {
-        flows_end.push(x)
-    }
-    if let Some(x) = recover_optional_uuid(flow_end2) {
-        flows_end.push(x)
-    }
-    if let Some(x) = recover_optional_uuid(flow_end3) {
-        flows_end.push(x)
-    }
+    let flows = recover_uuid_vec(flow0, flow1, flow2, flow3, flow_others);
+    let flows_end = recover_uuid_vec(flow_end0, flow_end1, flow_end2, flow_end3, flow_end_others);
     ctx.instant_evt(parent_uuid, ts, name, flows, flows_end)
 }
 
@@ -636,6 +686,10 @@ fn recover_bool(val: svBit) -> bool {
     val != 0
 }
 
+fn recover_optional_i32(val: c_int) -> Option<i32> {
+    if val == 0 { None } else { Some(val) }
+}
+
 fn recover_required_uuid(val: c_ulonglong) -> Result<u64, String> {
     match recover_optional_uuid(val) {
         Some(val) => Ok(val),
@@ -647,8 +701,35 @@ fn recover_optional_uuid(val: c_ulonglong) -> Option<u64> {
     if val == 0 { None } else { Some(val) }
 }
 
-fn recover_optional_i32(val: c_int) -> Option<i32> {
-    if val == 0 { None } else { Some(val) }
+fn recover_uuid_vec(
+    uuid0: c_ulonglong,
+    uuid1: c_ulonglong,
+    uuid2: c_ulonglong,
+    uuid3: c_ulonglong,
+    vec_handle: *mut c_void,
+) -> Vec<u64> {
+    let mut v = vec![];
+
+    for uuid in [uuid0, uuid1, uuid2, uuid3] {
+        if let Some(uuid) = recover_optional_uuid(uuid) {
+            v.push(uuid);
+        }
+    }
+
+    if !vec_handle.is_null() {
+        let vec: Box<Mutex<Vec<u64>>> = unsafe { Box::from_raw(vec_handle as *mut UUIDVecCHandle) };
+        {
+            let vec = vec.lock().unwrap();
+            for val in vec.iter() {
+                v.push(*val);
+            }
+            drop(vec); // re-lock
+        }
+        // Don't keep ownership:
+        let _ = Box::into_raw(vec) as *mut c_void;
+    }
+
+    v
 }
 
 fn recover_child_ordering(child_order: c_int) -> Result<Option<ChildOrder>, String> {

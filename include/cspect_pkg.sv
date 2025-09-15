@@ -12,6 +12,63 @@ package cspect_pkg;
     Explicit = 3
   } child_ordering_e;
 
+  typedef struct {
+    uuid_t  uuid0;
+    uuid_t  uuid1;
+    uuid_t  uuid2;
+    uuid_t  uuid3;
+    chandle others;
+  } __dpi_uuid_array_t;
+
+  function automatic __dpi_uuid_array_t __dpi_uuid_vec(uuid_t uuids[]);
+    automatic __dpi_uuid_array_t result;
+    automatic chandle array = 0;
+
+    if (uuids.size() > 4) begin
+      for (int i = 4; i < uuids.size(); i += 4) begin
+        if (array == 0) begin
+          array = cspect_uuid_vec_new(
+              uuids.size() > i + 0 ? uuids[i+0] : 0,
+              uuids.size() > i + 1 ? uuids[i+1] : 0,
+              uuids.size() > i + 2 ? uuids[i+2] : 0,
+              uuids.size() > i + 3 ? uuids[i+3] : 0
+          );
+          if (array == 0) begin
+            $error("cspect: cspect_uuid_vec_new failed");
+          end
+        end else begin
+          automatic int result = 0;
+          result = cspect_uuid_vec_append(
+              array,
+              uuids.size() > i + 0 ? uuids[i+0] : 0,
+              uuids.size() > i + 1 ? uuids[i+1] : 0,
+              uuids.size() > i + 2 ? uuids[i+2] : 0,
+              uuids.size() > i + 3 ? uuids[i+3] : 0
+          );
+          if (result != 0) begin
+            $error("cspect: cspect_uuid_vec_append failed");
+          end
+        end
+      end
+    end
+
+    result.uuid0  = uuids.size() > 0 ? uuids[0] : 0;
+    result.uuid1  = uuids.size() > 1 ? uuids[1] : 0;
+    result.uuid2  = uuids.size() > 2 ? uuids[2] : 0;
+    result.uuid3  = uuids.size() > 3 ? uuids[3] : 0;
+    result.others = array;
+    return result;
+  endfunction
+
+  function automatic void __dpi_uuid_vec_delete(__dpi_uuid_array_t vec);
+    if (vec.others != 0) begin
+      automatic int result = cspect_uuid_vec_delete(vec.others);
+      if (result != 0) begin
+        $error("cspect: cspect_uuid_vec_append failed");
+      end
+    end
+  endfunction
+
   class cspect_ctx_chandle;
     chandle ctx_chandle;
 
@@ -29,7 +86,7 @@ package cspect_pkg;
     endfunction
 
     function uuid_t new_flow();
-      uuid_t uuid = cspect_new_flow(ctx_chandle);
+      automatic uuid_t uuid = cspect_new_flow(ctx_chandle);
       if (uuid == 0) begin
         $error("cspect: cspect_new_flow failed");
       end
@@ -82,118 +139,122 @@ package cspect_pkg;
 
     function void slice_begin(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {});
       automatic int result;
-      if (flows.size() > 3) begin
-        $error("cspect: slice_begin supports maximum 3 flows, got %0d", flows.size());
-        return;
-      end
-      if (flows_end.size() > 3) begin
-        $error("cspect: slice_begin supports maximum 3 flows_end, got %0d", flows_end.size());
-        return;
-      end
+      automatic __dpi_uuid_array_t dpi_flows, dpi_flows_end;
+      dpi_flows = __dpi_uuid_vec(flows);
+      dpi_flows_end = __dpi_uuid_vec(flows_end);
       result = cspect_slice_begin(
           this.ctx_chandle,
           this.scope_uuid,
           $realtime,
           name,
-          flows.size() > 0 ? flows[0] : 0,
-          flows.size() > 1 ? flows[1] : 0,
-          flows.size() > 2 ? flows[2] : 0,
-          flows_end.size() > 0 ? flows_end[0] : 0,
-          flows_end.size() > 1 ? flows_end[1] : 0,
-          flows_end.size() > 2 ? flows_end[2] : 0,
+          dpi_flows.uuid0,
+          dpi_flows.uuid1,
+          dpi_flows.uuid2,
+          dpi_flows.uuid3,
+          dpi_flows.others,
+          dpi_flows_end.uuid0,
+          dpi_flows_end.uuid1,
+          dpi_flows_end.uuid2,
+          dpi_flows_end.uuid3,
+          dpi_flows_end.others,
           `CSPECT_REPLACE_OFF
       );
       if (result != 0) begin
         $error("cspect: cspect_slice_begin failed for slice '%s' with error code %0d", name,
                result);
       end
+      __dpi_uuid_vec_delete(dpi_flows);
+      __dpi_uuid_vec_delete(dpi_flows_end);
     endfunction
 
     function void slice_set(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {},
                             bit compress = 0);
-      automatic int replacement_behaviour;
       automatic int result;
-      if (flows.size() > 3) begin
-        $error("cspect: slice_set supports maximum 3 flows, got %0d", flows.size());
-        return;
-      end
-      if (flows_end.size() > 3) begin
-        $error("cspect: slice_set supports maximum 3 flows_end, got %0d", flows_end.size());
-        return;
-      end
+      automatic int replacement_behaviour;
+      automatic __dpi_uuid_array_t dpi_flows, dpi_flows_end;
+      dpi_flows = __dpi_uuid_vec(flows);
+      dpi_flows_end = __dpi_uuid_vec(flows_end);
       replacement_behaviour = compress ? `CSPECT_REPLACE_IF_DIFFERENT : `CSPECT_REPLACE;
       result = cspect_slice_begin(
           this.ctx_chandle,
           this.scope_uuid,
           $realtime,
           name,
-          flows.size() > 0 ? flows[0] : 0,
-          flows.size() > 1 ? flows[1] : 0,
-          flows.size() > 2 ? flows[2] : 0,
-          flows_end.size() > 0 ? flows_end[0] : 0,
-          flows_end.size() > 1 ? flows_end[1] : 0,
-          flows_end.size() > 2 ? flows_end[2] : 0,
+          dpi_flows.uuid0,
+          dpi_flows.uuid1,
+          dpi_flows.uuid2,
+          dpi_flows.uuid3,
+          dpi_flows.others,
+          dpi_flows_end.uuid0,
+          dpi_flows_end.uuid1,
+          dpi_flows_end.uuid2,
+          dpi_flows_end.uuid3,
+          dpi_flows_end.others,
           replacement_behaviour
       );
       if (result != 0) begin
         $error("cspect: cspect_slice_begin failed for slice '%s' with error code %0d", name,
                result);
       end
+      __dpi_uuid_vec_delete(dpi_flows);
+      __dpi_uuid_vec_delete(dpi_flows_end);
     endfunction
 
     function void slice_end(uuid_t flows[] = {}, uuid_t flows_end[] = {}, bit force_end = 0);
       automatic int result;
-      if (flows.size() > 3) begin
-        $error("cspect: slice_end supports maximum 3 flows, got %0d", flows.size());
-        return;
-      end
-      if (flows_end.size() > 3) begin
-        $error("cspect: slice_end supports maximum 3 flows_end, got %0d", flows_end.size());
-        return;
-      end
+      automatic __dpi_uuid_array_t dpi_flows, dpi_flows_end;
+      dpi_flows = __dpi_uuid_vec(flows);
+      dpi_flows_end = __dpi_uuid_vec(flows_end);
       result = cspect_slice_end(
           this.ctx_chandle,
           this.scope_uuid,
           $realtime,
-          flows.size() > 0 ? flows[0] : 0,
-          flows.size() > 1 ? flows[1] : 0,
-          flows.size() > 2 ? flows[2] : 0,
-          flows_end.size() > 0 ? flows_end[0] : 0,
-          flows_end.size() > 1 ? flows_end[1] : 0,
-          flows_end.size() > 2 ? flows_end[2] : 0,
+          dpi_flows.uuid0,
+          dpi_flows.uuid1,
+          dpi_flows.uuid2,
+          dpi_flows.uuid3,
+          dpi_flows.others,
+          dpi_flows_end.uuid0,
+          dpi_flows_end.uuid1,
+          dpi_flows_end.uuid2,
+          dpi_flows_end.uuid3,
+          dpi_flows_end.others,
           force_end
       );
       if (result != 0) begin
         $error("cspect: cspect_slice_end failed with error code %0d", result);
       end
+      __dpi_uuid_vec_delete(dpi_flows);
+      __dpi_uuid_vec_delete(dpi_flows_end);
     endfunction
 
     function void instant_evt(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {});
       automatic int result;
-      if (flows.size() > 3) begin
-        $error("cspect: instant_evt supports maximum 3 flows, got %0d", flows.size());
-        return;
-      end
-      if (flows_end.size() > 3) begin
-        $error("cspect: instant_evt supports maximum 3 flows_end, got %0d", flows_end.size());
-        return;
-      end
+      automatic __dpi_uuid_array_t dpi_flows, dpi_flows_end;
+      dpi_flows = __dpi_uuid_vec(flows);
+      dpi_flows_end = __dpi_uuid_vec(flows_end);
       result = cspect_instant_evt(
           this.ctx_chandle,
           this.scope_uuid,
           $realtime,
           name,
-          flows.size() > 0 ? flows[0] : 0,
-          flows.size() > 1 ? flows[1] : 0,
-          flows.size() > 2 ? flows[2] : 0,
-          flows_end.size() > 0 ? flows_end[0] : 0,
-          flows_end.size() > 1 ? flows_end[1] : 0,
-          flows_end.size() > 2 ? flows_end[2] : 0
+          dpi_flows.uuid0,
+          dpi_flows.uuid1,
+          dpi_flows.uuid2,
+          dpi_flows.uuid3,
+          dpi_flows.others,
+          dpi_flows_end.uuid0,
+          dpi_flows_end.uuid1,
+          dpi_flows_end.uuid2,
+          dpi_flows_end.uuid3,
+          dpi_flows_end.others
       );
       if (result != 0) begin
         $error("cspect: cspect_instant_evt failed for event '%s' with error code %0d", name,
                result);
       end
+      __dpi_uuid_vec_delete(dpi_flows);
+      __dpi_uuid_vec_delete(dpi_flows_end);
     endfunction
   endclass
 

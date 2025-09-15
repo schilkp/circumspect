@@ -6,6 +6,23 @@
 `define CSPECT_REPLACE 1
 `define CSPECT_REPLACE_IF_DIFFERENT 2
 
+import "DPI-C" function chandle cspect_uuid_vec_new(
+  input longint unsigned uuid0,
+  input longint unsigned uuid1,
+  input longint unsigned uuid2,
+  input longint unsigned uuid3
+);
+
+import "DPI-C" function int cspect_uuid_vec_append(
+  input chandle uuid_vec,
+  input longint unsigned uuid0,
+  input longint unsigned uuid1,
+  input longint unsigned uuid2,
+  input longint unsigned uuid3
+);
+
+import "DPI-C" function int cspect_uuid_vec_delete(input chandle uuid_vec);
+
 import "DPI-C" function chandle cspect_new(
   input string trace_path,
   input real timescale,
@@ -32,12 +49,16 @@ import "DPI-C" function int cspect_slice_begin(
   input longint unsigned parent_uuid,
   input real ts,
   input string name,
+  input longint unsigned flow0,
   input longint unsigned flow1,
   input longint unsigned flow2,
   input longint unsigned flow3,
+  input chandle flow_others,
+  input longint unsigned flow_end0,
   input longint unsigned flow_end1,
   input longint unsigned flow_end2,
   input longint unsigned flow_end3,
+  input chandle flow_end_others,
   input int replacement_behaviour
 );
 
@@ -45,12 +66,16 @@ import "DPI-C" function int cspect_slice_end(
   input chandle cspect_ctx,
   input longint unsigned parent_uuid,
   input real ts,
+  input longint unsigned flow0,
   input longint unsigned flow1,
   input longint unsigned flow2,
   input longint unsigned flow3,
+  input chandle flow_others,
+  input longint unsigned flow_end0,
   input longint unsigned flow_end1,
   input longint unsigned flow_end2,
   input longint unsigned flow_end3,
+  input chandle flow_end_others,
   input bit force_end
 );
 
@@ -59,12 +84,16 @@ import "DPI-C" function int cspect_instant_evt(
   input longint unsigned parent_uuid,
   input real ts,
   input string name,
+  input longint unsigned flow0,
   input longint unsigned flow1,
   input longint unsigned flow2,
   input longint unsigned flow3,
+  input chandle flow_others,
+  input longint unsigned flow_end0,
   input longint unsigned flow_end1,
   input longint unsigned flow_end2,
-  input longint unsigned flow_end3
+  input longint unsigned flow_end3,
+  input chandle flow_end_others
 );
 
 import "DPI-C" function longint unsigned cspect_new_process(
