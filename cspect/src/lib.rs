@@ -269,6 +269,7 @@ impl Context {
         flows: Vec<u64>,
         flows_end: Vec<u64>,
         replace_behaviour: ReplacementBehaviour,
+        correlation_id: Option<u64>,
     ) -> Result<(), String> {
         let new_slice = TrackSlice::new(name.clone(), flows.clone());
 
@@ -276,7 +277,7 @@ impl Context {
             ReplacementBehaviour::Replace => {
                 let track = self.get_mut_track(track_uuid);
                 if !track.active_slices.is_empty() {
-                    self.slice_end_evt(track_uuid, ts, vec![], vec![], true)?;
+                    self.slice_end_evt(track_uuid, ts, vec![], vec![], true, None)?;
                 }
             }
             ReplacementBehaviour::NewSlice => {
@@ -289,7 +290,7 @@ impl Context {
                         // Same slice, do nothing
                         return Ok(());
                     } else {
-                        self.slice_end_evt(track_uuid, ts, vec![], vec![], true)?;
+                        self.slice_end_evt(track_uuid, ts, vec![], vec![], true, None)?;
                     }
                 }
             }
@@ -303,6 +304,7 @@ impl Context {
             name,
             flows,
             flows_end,
+            correlation_id,
             &mut self.encode_buffer,
         )
         .expect("prost encode should only fail if buffer is too small, but buffer is vec");
@@ -322,6 +324,7 @@ impl Context {
         flows: Vec<u64>,
         flows_end: Vec<u64>,
         force: bool,
+        correlation_id: Option<u64>,
     ) -> Result<(), String> {
         self.encode_buffer.clear();
         let ts = self.convert_ts(ts);
@@ -331,8 +334,15 @@ impl Context {
             return Ok(());
         }
 
-        synthetto::slice_end_evt(track_uuid, ts, flows, flows_end, &mut self.encode_buffer)
-            .expect("prost encode should only fail if buffer is too small, but buffer is vec");
+        synthetto::slice_end_evt(
+            track_uuid,
+            ts,
+            flows,
+            flows_end,
+            correlation_id,
+            &mut self.encode_buffer,
+        )
+        .expect("prost encode should only fail if buffer is too small, but buffer is vec");
         self.w
             .write_all(&self.encode_buffer)
             .map_err(ioerr_to_str)?;
@@ -350,6 +360,7 @@ impl Context {
         name: Option<String>,
         flows: Vec<u64>,
         flows_end: Vec<u64>,
+        correlation_id: Option<u64>,
     ) -> Result<(), String> {
         self.encode_buffer.clear();
         let ts = self.convert_ts(ts);
@@ -359,6 +370,7 @@ impl Context {
             name,
             flows,
             flows_end,
+            correlation_id,
             &mut self.encode_buffer,
         )
         .expect("prost encode should only fail if buffer is too small, but buffer is vec");

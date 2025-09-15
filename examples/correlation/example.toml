@@ -1,7 +1,7 @@
 # general config:
-name = "Processes & Threads"
+name = "Correlations"
 example_file = "./top.sv"
-trace_file = "trace_processes.pftrace"
+trace_file = "trace_correlation.pftrace"
 # annotated_trace_file =
 
 # compilation/run/annotation config:
@@ -10,4 +10,4 @@ extra_verilator_flags = ["-Wno-TIMESCALEMOD", "+incdir+../../include"]
 # annotation_cmd =
 
 # docs:
-docs_sort_key = 4
+docs_sort_key = 3

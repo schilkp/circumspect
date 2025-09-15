@@ -215,6 +215,15 @@ fn cspect_new_flow_actual(ctx: &mut Context) -> Result<u64, String> {
 }
 
 #[unsafe(no_mangle)]
+pub extern "C" fn cspect_new_correlation_id(cspect_ctx: *mut c_void) -> c_ulonglong {
+    object_function_body_uuid_ret!(cspect_new_correlation_id_actual, cspect_ctx)
+}
+
+fn cspect_new_correlation_id_actual(ctx: &mut Context) -> Result<u64, String> {
+    Ok(ctx.new_flow())
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn cspect_new_track(
     cspect_ctx: *mut c_void,
     name: *const c_char,
@@ -273,6 +282,7 @@ pub extern "C" fn cspect_slice_begin(
     flow_end3: c_ulonglong,
     flow_end_others: *mut c_void,
     replacement_behaviour: c_int,
+    correlation_id: c_ulonglong,
 ) -> c_int {
     object_function_body_err_ret!(
         cspect_slice_begin_actual,
@@ -291,6 +301,7 @@ pub extern "C" fn cspect_slice_begin(
         flow_end3,
         flow_end_others,
         replacement_behaviour,
+        correlation_id,
     )
 }
 
@@ -310,6 +321,7 @@ fn cspect_slice_begin_actual(
     flow_end3: c_ulonglong,
     flow_end_others: *mut c_void,
     replacement_behaviour: c_int,
+    correlation_id: c_ulonglong,
 ) -> Result<(), String> {
     let parent_uuid = recover_required_uuid(parent_uuid)?;
     let ts: f64 = ts;
@@ -317,7 +329,16 @@ fn cspect_slice_begin_actual(
     let replace_behaviour = recover_replacement_behaviour(replacement_behaviour)?;
     let flows = recover_uuid_vec(flow0, flow1, flow2, flow3, flow_others);
     let flows_end = recover_uuid_vec(flow_end0, flow_end1, flow_end2, flow_end3, flow_end_others);
-    ctx.slice_begin_evt(parent_uuid, ts, name, flows, flows_end, replace_behaviour)
+    let correlation_id = recover_optional_uuid(correlation_id);
+    ctx.slice_begin_evt(
+        parent_uuid,
+        ts,
+        name,
+        flows,
+        flows_end,
+        replace_behaviour,
+        correlation_id,
+    )
 }
 
 #[unsafe(no_mangle)]
@@ -336,6 +357,7 @@ pub extern "C" fn cspect_slice_end(
     flow_end3: c_ulonglong,
     flow_end_others: *mut c_void,
     force: svBit,
+    correlation_id: c_ulonglong,
 ) -> c_int {
     object_function_body_err_ret!(
         cspect_slice_end_actual,
@@ -352,7 +374,8 @@ pub extern "C" fn cspect_slice_end(
         flow_end2,
         flow_end3,
         flow_end_others,
-        force
+        force,
+        correlation_id,
     )
 }
 
@@ -371,13 +394,15 @@ fn cspect_slice_end_actual(
     flow_end3: c_ulonglong,
     flow_end_others: *mut c_void,
     force: svBit,
+    correlation_id: c_ulonglong,
 ) -> Result<(), String> {
     let parent_uuid = recover_required_uuid(parent_uuid)?;
     let ts: f64 = ts;
     let flows = recover_uuid_vec(flow0, flow1, flow2, flow3, flow_others);
     let flows_end = recover_uuid_vec(flow_end0, flow_end1, flow_end2, flow_end3, flow_end_others);
     let force = recover_bool(force);
-    ctx.slice_end_evt(parent_uuid, ts, flows, flows_end, force)
+    let correlation_id = recover_optional_uuid(correlation_id);
+    ctx.slice_end_evt(parent_uuid, ts, flows, flows_end, force, correlation_id)
 }
 
 #[unsafe(no_mangle)]
@@ -396,6 +421,7 @@ pub extern "C" fn cspect_instant_evt(
     flow_end2: c_ulonglong,
     flow_end3: c_ulonglong,
     flow_end_others: *mut c_void,
+    correlation_id: c_ulonglong,
 ) -> c_int {
     object_function_body_err_ret!(
         cspect_instant_evt_actual,
@@ -412,7 +438,8 @@ pub extern "C" fn cspect_instant_evt(
         flow_end1,
         flow_end2,
         flow_end3,
-        flow_end_others
+        flow_end_others,
+        correlation_id,
     )
 }
 
@@ -431,13 +458,15 @@ fn cspect_instant_evt_actual(
     flow_end2: c_ulonglong,
     flow_end3: c_ulonglong,
     flow_end_others: *mut c_void,
+    correlation_id: c_ulonglong,
 ) -> Result<(), String> {
     let parent_uuid = recover_required_uuid(parent_uuid)?;
     let ts: f64 = ts;
     let name = unsafe { recover_optional_cstr(name)?.map(String::from) };
     let flows = recover_uuid_vec(flow0, flow1, flow2, flow3, flow_others);
     let flows_end = recover_uuid_vec(flow_end0, flow_end1, flow_end2, flow_end3, flow_end_others);
-    ctx.instant_evt(parent_uuid, ts, name, flows, flows_end)
+    let correlation_id = recover_optional_uuid(correlation_id);
+    ctx.instant_evt(parent_uuid, ts, name, flows, flows_end, correlation_id)
 }
 
 #[unsafe(no_mangle)]

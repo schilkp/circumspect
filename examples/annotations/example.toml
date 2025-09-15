@@ -10,7 +10,7 @@ extra_verilator_flags = ["-Wno-TIMESCALEMOD", "+incdir+../../include"]
 annotation_cmd = ["./annotate.bash"]
 
 # docs:
-docs_sort_key = 4
+docs_sort_key = 5
 docs_blurb = """
 CircumSpect supports annotating traces in a post-processing step, replacing all values that feature an annotation marker.
 """

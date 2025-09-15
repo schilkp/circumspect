@@ -35,6 +35,8 @@ import "DPI-C" function int cspect_flush(input chandle cspect_ctx);
 
 import "DPI-C" function longint unsigned cspect_new_flow(input chandle cspect_ctx);
 
+import "DPI-C" function longint unsigned cspect_new_correlation_id(input chandle cspect_ctx);
+
 import "DPI-C" function longint unsigned cspect_new_track(
   input chandle cspect_ctx,
   input string name,
@@ -59,7 +61,8 @@ import "DPI-C" function int cspect_slice_begin(
   input longint unsigned flow_end2,
   input longint unsigned flow_end3,
   input chandle flow_end_others,
-  input int replacement_behaviour
+  input int replacement_behaviour,
+  input longint unsigned correlation_id
 );
 
 import "DPI-C" function int cspect_slice_end(
@@ -76,7 +79,8 @@ import "DPI-C" function int cspect_slice_end(
   input longint unsigned flow_end2,
   input longint unsigned flow_end3,
   input chandle flow_end_others,
-  input bit force_end
+  input bit force_end,
+  input longint unsigned correlation_id
 );
 
 import "DPI-C" function int cspect_instant_evt(
@@ -93,7 +97,8 @@ import "DPI-C" function int cspect_instant_evt(
   input longint unsigned flow_end1,
   input longint unsigned flow_end2,
   input longint unsigned flow_end3,
-  input chandle flow_end_others
+  input chandle flow_end_others,
+  input longint unsigned correlation_id
 );
 
 import "DPI-C" function longint unsigned cspect_new_process(

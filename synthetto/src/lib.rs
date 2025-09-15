@@ -242,8 +242,12 @@ pub fn slice_begin_evt<B: BufMut>(
     name: Option<String>,
     flows: Vec<u64>,
     flows_end: Vec<u64>,
+    correlation_id: Option<u64>,
     buf: &mut B,
 ) -> Result<(), EncodeError> {
+    let correlation_id_field =
+        correlation_id.map(protos::track_event::CorrelationIdField::CorrelationId);
+
     let evt = TracePacket {
         timestamp: Some(ts),
         data: Some(protos::trace_packet::Data::TrackEvent(protos::TrackEvent {
@@ -252,6 +256,7 @@ pub fn slice_begin_evt<B: BufMut>(
             r#type: Some(protos::track_event::Type::SliceBegin as i32),
             flow_ids: flows,
             terminating_flow_ids: flows_end,
+            correlation_id_field,
             ..protos::TrackEvent::default()
         })),
         optional_trusted_packet_sequence_id: TRUSTED_PACKET_SEQUENCE_ID,
@@ -268,8 +273,12 @@ pub fn slice_end_evt<B: BufMut>(
     ts: u64,
     flows: Vec<u64>,
     flows_end: Vec<u64>,
+    correlation_id: Option<u64>,
     buf: &mut B,
 ) -> Result<(), EncodeError> {
+    let correlation_id_field =
+        correlation_id.map(protos::track_event::CorrelationIdField::CorrelationId);
+
     let evt = protos::TracePacket {
         timestamp: Some(ts),
         data: Some(protos::trace_packet::Data::TrackEvent(protos::TrackEvent {
@@ -278,6 +287,7 @@ pub fn slice_end_evt<B: BufMut>(
             r#type: Some(protos::track_event::Type::SliceEnd as i32),
             flow_ids: flows,
             terminating_flow_ids: flows_end,
+            correlation_id_field,
             ..protos::TrackEvent::default()
         })),
         optional_trusted_packet_sequence_id: TRUSTED_PACKET_SEQUENCE_ID,
@@ -295,9 +305,13 @@ pub fn instant_evt<B: BufMut>(
     name: Option<String>,
     flows: Vec<u64>,
     flows_end: Vec<u64>,
+    correlation_id: Option<u64>,
     buf: &mut B,
 ) -> Result<(), EncodeError> {
     let name_field = name.map(protos::track_event::NameField::Name);
+    let correlation_id_field =
+        correlation_id.map(protos::track_event::CorrelationIdField::CorrelationId);
+
     let evt = protos::TracePacket {
         timestamp: Some(ts),
         data: Some(protos::trace_packet::Data::TrackEvent(protos::TrackEvent {
@@ -306,6 +320,7 @@ pub fn instant_evt<B: BufMut>(
             r#type: Some(protos::track_event::Type::Instant as i32),
             flow_ids: flows,
             terminating_flow_ids: flows_end,
+            correlation_id_field,
             ..protos::TrackEvent::default()
         })),
         optional_trusted_packet_sequence_id: TRUSTED_PACKET_SEQUENCE_ID,

@@ -10,7 +10,7 @@ extra_verilator_flags = ["-Wno-TIMESCALEMOD", "+incdir+../../include"]
 # annotation_cmd =
 
 # docs:
-docs_sort_key = 5
+docs_sort_key = 100
 docs_blurb = """
 A very simple 8-bit CPU with a RAM, ROM, and driver/testbench module.
 

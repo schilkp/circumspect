@@ -93,6 +93,14 @@ package cspect_pkg;
       return uuid;
     endfunction
 
+    function uuid_t new_correlation_id();
+      automatic uuid_t uuid = cspect_new_correlation_id(ctx_chandle);
+      if (uuid == 0) begin
+        $error("cspect: cspect_new_correlation_id failed");
+      end
+      return uuid;
+    endfunction
+
     function track new_track(string name, string description = "",
                              child_ordering_e child_ordering = Unknown, int child_order_rank = 0);
       track new_track;
@@ -137,7 +145,8 @@ package cspect_pkg;
       super.new(handle, uuid);
     endfunction
 
-    function void slice_begin(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {});
+    function void slice_begin(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {},
+                              uuid_t correlation_id = 0);
       automatic int result;
       automatic __dpi_uuid_array_t dpi_flows, dpi_flows_end;
       dpi_flows = __dpi_uuid_vec(flows);
@@ -157,7 +166,8 @@ package cspect_pkg;
           dpi_flows_end.uuid2,
           dpi_flows_end.uuid3,
           dpi_flows_end.others,
-          `CSPECT_REPLACE_OFF
+          `CSPECT_REPLACE_OFF,
+          correlation_id
       );
       if (result != 0) begin
         $error("cspect: cspect_slice_begin failed for slice '%s' with error code %0d", name,
@@ -168,7 +178,7 @@ package cspect_pkg;
     endfunction
 
     function void slice_set(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {},
-                            bit compress = 0);
+                            bit compress = 0, uuid_t correlation_id = 0);
       automatic int result;
       automatic int replacement_behaviour;
       automatic __dpi_uuid_array_t dpi_flows, dpi_flows_end;
@@ -190,7 +200,8 @@ package cspect_pkg;
           dpi_flows_end.uuid2,
           dpi_flows_end.uuid3,
           dpi_flows_end.others,
-          replacement_behaviour
+          replacement_behaviour,
+          correlation_id
       );
       if (result != 0) begin
         $error("cspect: cspect_slice_begin failed for slice '%s' with error code %0d", name,
@@ -200,7 +211,8 @@ package cspect_pkg;
       __dpi_uuid_vec_delete(dpi_flows_end);
     endfunction
 
-    function void slice_end(uuid_t flows[] = {}, uuid_t flows_end[] = {}, bit force_end = 0);
+    function void slice_end(uuid_t flows[] = {}, uuid_t flows_end[] = {}, bit force_end = 0,
+                            uuid_t correlation_id = 0);
       automatic int result;
       automatic __dpi_uuid_array_t dpi_flows, dpi_flows_end;
       dpi_flows = __dpi_uuid_vec(flows);
@@ -219,7 +231,8 @@ package cspect_pkg;
           dpi_flows_end.uuid2,
           dpi_flows_end.uuid3,
           dpi_flows_end.others,
-          force_end
+          force_end,
+          correlation_id
       );
       if (result != 0) begin
         $error("cspect: cspect_slice_end failed with error code %0d", result);
@@ -228,7 +241,8 @@ package cspect_pkg;
       __dpi_uuid_vec_delete(dpi_flows_end);
     endfunction
 
-    function void instant_evt(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {});
+    function void instant_evt(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {},
+                              uuid_t correlation_id = 0);
       automatic int result;
       automatic __dpi_uuid_array_t dpi_flows, dpi_flows_end;
       dpi_flows = __dpi_uuid_vec(flows);
@@ -247,7 +261,8 @@ package cspect_pkg;
           dpi_flows_end.uuid1,
           dpi_flows_end.uuid2,
           dpi_flows_end.uuid3,
-          dpi_flows_end.others
+          dpi_flows_end.others,
+          correlation_id
       );
       if (result != 0) begin
         $error("cspect: cspect_instant_evt failed for event '%s' with error code %0d", name,
