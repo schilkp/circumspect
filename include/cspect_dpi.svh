@@ -35,6 +35,9 @@ import "DPI-C" function int cspect_slice_begin(
   input longint unsigned flow1,
   input longint unsigned flow2,
   input longint unsigned flow3,
+  input longint unsigned flow_end1,
+  input longint unsigned flow_end2,
+  input longint unsigned flow_end3,
   input int replacement_behaviour
 );
 
@@ -45,6 +48,9 @@ import "DPI-C" function int cspect_slice_end(
   input longint unsigned flow1,
   input longint unsigned flow2,
   input longint unsigned flow3,
+  input longint unsigned flow_end1,
+  input longint unsigned flow_end2,
+  input longint unsigned flow_end3,
   input bit force_end
 );
 
@@ -55,7 +61,10 @@ import "DPI-C" function int cspect_instant_evt(
   input string name,
   input longint unsigned flow1,
   input longint unsigned flow2,
-  input longint unsigned flow3
+  input longint unsigned flow3,
+  input longint unsigned flow_end1,
+  input longint unsigned flow_end2,
+  input longint unsigned flow_end3
 );
 
 import "DPI-C" function longint unsigned cspect_new_process(

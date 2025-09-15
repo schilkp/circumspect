@@ -241,6 +241,7 @@ pub fn slice_begin_evt<B: BufMut>(
     ts: u64,
     name: Option<String>,
     flows: Vec<u64>,
+    flows_end: Vec<u64>,
     buf: &mut B,
 ) -> Result<(), EncodeError> {
     let evt = TracePacket {
@@ -250,6 +251,7 @@ pub fn slice_begin_evt<B: BufMut>(
             track_uuid: Some(track_uuid),
             r#type: Some(protos::track_event::Type::SliceBegin as i32),
             flow_ids: flows,
+            terminating_flow_ids: flows_end,
             ..protos::TrackEvent::default()
         })),
         optional_trusted_packet_sequence_id: TRUSTED_PACKET_SEQUENCE_ID,
@@ -265,6 +267,7 @@ pub fn slice_end_evt<B: BufMut>(
     track_uuid: u64,
     ts: u64,
     flows: Vec<u64>,
+    flows_end: Vec<u64>,
     buf: &mut B,
 ) -> Result<(), EncodeError> {
     let evt = protos::TracePacket {
@@ -274,6 +277,7 @@ pub fn slice_end_evt<B: BufMut>(
             track_uuid: Some(track_uuid),
             r#type: Some(protos::track_event::Type::SliceEnd as i32),
             flow_ids: flows,
+            terminating_flow_ids: flows_end,
             ..protos::TrackEvent::default()
         })),
         optional_trusted_packet_sequence_id: TRUSTED_PACKET_SEQUENCE_ID,
@@ -290,6 +294,7 @@ pub fn instant_evt<B: BufMut>(
     ts: u64,
     name: Option<String>,
     flows: Vec<u64>,
+    flows_end: Vec<u64>,
     buf: &mut B,
 ) -> Result<(), EncodeError> {
     let name_field = name.map(protos::track_event::NameField::Name);
@@ -300,6 +305,7 @@ pub fn instant_evt<B: BufMut>(
             track_uuid: Some(track_uuid),
             r#type: Some(protos::track_event::Type::Instant as i32),
             flow_ids: flows,
+            terminating_flow_ids: flows_end,
             ..protos::TrackEvent::default()
         })),
         optional_trusted_packet_sequence_id: TRUSTED_PACKET_SEQUENCE_ID,

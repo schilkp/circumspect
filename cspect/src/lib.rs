@@ -267,6 +267,7 @@ impl Context {
         ts: f64,
         name: Option<String>,
         flows: Vec<u64>,
+        flows_end: Vec<u64>,
         replace_behaviour: ReplacementBehaviour,
     ) -> Result<(), String> {
         let new_slice = TrackSlice::new(name.clone(), flows.clone());
@@ -275,7 +276,7 @@ impl Context {
             ReplacementBehaviour::Replace => {
                 let track = self.get_mut_track(track_uuid);
                 if !track.active_slices.is_empty() {
-                    self.slice_end_evt(track_uuid, ts, vec![], true)?;
+                    self.slice_end_evt(track_uuid, ts, vec![], vec![], true)?;
                 }
             }
             ReplacementBehaviour::NewSlice => {
@@ -288,7 +289,7 @@ impl Context {
                         // Same slice, do nothing
                         return Ok(());
                     } else {
-                        self.slice_end_evt(track_uuid, ts, vec![], true)?;
+                        self.slice_end_evt(track_uuid, ts, vec![], vec![], true)?;
                     }
                 }
             }
@@ -296,8 +297,15 @@ impl Context {
 
         self.encode_buffer.clear();
         let ts = self.convert_ts(ts);
-        synthetto::slice_begin_evt(track_uuid, ts, name, flows, &mut self.encode_buffer)
-            .expect("prost encode should only fail if buffer is too small, but buffer is vec");
+        synthetto::slice_begin_evt(
+            track_uuid,
+            ts,
+            name,
+            flows,
+            flows_end,
+            &mut self.encode_buffer,
+        )
+        .expect("prost encode should only fail if buffer is too small, but buffer is vec");
         self.w
             .write_all(&self.encode_buffer)
             .map_err(ioerr_to_str)?;
@@ -312,6 +320,7 @@ impl Context {
         track_uuid: u64,
         ts: f64,
         flows: Vec<u64>,
+        flows_end: Vec<u64>,
         force: bool,
     ) -> Result<(), String> {
         self.encode_buffer.clear();
@@ -322,7 +331,7 @@ impl Context {
             return Ok(());
         }
 
-        synthetto::slice_end_evt(track_uuid, ts, flows, &mut self.encode_buffer)
+        synthetto::slice_end_evt(track_uuid, ts, flows, flows_end, &mut self.encode_buffer)
             .expect("prost encode should only fail if buffer is too small, but buffer is vec");
         self.w
             .write_all(&self.encode_buffer)
@@ -340,11 +349,19 @@ impl Context {
         ts: f64,
         name: Option<String>,
         flows: Vec<u64>,
+        flows_end: Vec<u64>,
     ) -> Result<(), String> {
         self.encode_buffer.clear();
         let ts = self.convert_ts(ts);
-        synthetto::instant_evt(track_uuid, ts, name, flows, &mut self.encode_buffer)
-            .expect("prost encode should only fail if buffer is too small, but buffer is vec");
+        synthetto::instant_evt(
+            track_uuid,
+            ts,
+            name,
+            flows,
+            flows_end,
+            &mut self.encode_buffer,
+        )
+        .expect("prost encode should only fail if buffer is too small, but buffer is vec");
         self.w
             .write_all(&self.encode_buffer)
             .map_err(ioerr_to_str)?;

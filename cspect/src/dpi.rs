@@ -197,6 +197,9 @@ pub extern "C" fn cspect_slice_begin(
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    flow_end1: c_ulonglong,
+    flow_end2: c_ulonglong,
+    flow_end3: c_ulonglong,
     replacement_behaviour: c_int,
 ) -> c_int {
     object_function_body_err_ret!(
@@ -208,6 +211,9 @@ pub extern "C" fn cspect_slice_begin(
         flow1,
         flow2,
         flow3,
+        flow_end1,
+        flow_end2,
+        flow_end3,
         replacement_behaviour,
     )
 }
@@ -220,6 +226,9 @@ fn cspect_slice_begin_actual(
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    flow_end1: c_ulonglong,
+    flow_end2: c_ulonglong,
+    flow_end3: c_ulonglong,
     replacement_behaviour: c_int,
 ) -> Result<(), String> {
     let parent_uuid = recover_required_uuid(parent_uuid)?;
@@ -236,7 +245,17 @@ fn cspect_slice_begin_actual(
     if let Some(x) = recover_optional_uuid(flow3) {
         flows.push(x)
     }
-    ctx.slice_begin_evt(parent_uuid, ts, name, flows, replace_behaviour)
+    let mut flows_end = vec![];
+    if let Some(x) = recover_optional_uuid(flow_end1) {
+        flows_end.push(x)
+    }
+    if let Some(x) = recover_optional_uuid(flow_end2) {
+        flows_end.push(x)
+    }
+    if let Some(x) = recover_optional_uuid(flow_end3) {
+        flows_end.push(x)
+    }
+    ctx.slice_begin_evt(parent_uuid, ts, name, flows, flows_end, replace_behaviour)
 }
 
 #[unsafe(no_mangle)]
@@ -247,6 +266,9 @@ pub extern "C" fn cspect_slice_end(
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    flow_end1: c_ulonglong,
+    flow_end2: c_ulonglong,
+    flow_end3: c_ulonglong,
     force: svBit,
 ) -> c_int {
     object_function_body_err_ret!(
@@ -257,6 +279,9 @@ pub extern "C" fn cspect_slice_end(
         flow1,
         flow2,
         flow3,
+        flow_end1,
+        flow_end2,
+        flow_end3,
         force
     )
 }
@@ -268,6 +293,9 @@ fn cspect_slice_end_actual(
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    flow_end1: c_ulonglong,
+    flow_end2: c_ulonglong,
+    flow_end3: c_ulonglong,
     force: svBit,
 ) -> Result<(), String> {
     let parent_uuid = recover_required_uuid(parent_uuid)?;
@@ -282,8 +310,18 @@ fn cspect_slice_end_actual(
     if let Some(x) = recover_optional_uuid(flow3) {
         flows.push(x)
     }
+    let mut flows_end = vec![];
+    if let Some(x) = recover_optional_uuid(flow_end1) {
+        flows_end.push(x)
+    }
+    if let Some(x) = recover_optional_uuid(flow_end2) {
+        flows_end.push(x)
+    }
+    if let Some(x) = recover_optional_uuid(flow_end3) {
+        flows_end.push(x)
+    }
     let force = recover_bool(force);
-    ctx.slice_end_evt(parent_uuid, ts, flows, force)
+    ctx.slice_end_evt(parent_uuid, ts, flows, flows_end, force)
 }
 
 #[unsafe(no_mangle)]
@@ -295,6 +333,9 @@ pub extern "C" fn cspect_instant_evt(
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    flow_end1: c_ulonglong,
+    flow_end2: c_ulonglong,
+    flow_end3: c_ulonglong,
 ) -> c_int {
     object_function_body_err_ret!(
         cspect_instant_evt_actual,
@@ -305,6 +346,9 @@ pub extern "C" fn cspect_instant_evt(
         flow1,
         flow2,
         flow3,
+        flow_end1,
+        flow_end2,
+        flow_end3,
     )
 }
 
@@ -316,6 +360,9 @@ fn cspect_instant_evt_actual(
     flow1: c_ulonglong,
     flow2: c_ulonglong,
     flow3: c_ulonglong,
+    flow_end1: c_ulonglong,
+    flow_end2: c_ulonglong,
+    flow_end3: c_ulonglong,
 ) -> Result<(), String> {
     let parent_uuid = recover_required_uuid(parent_uuid)?;
     let ts: f64 = ts;
@@ -330,7 +377,17 @@ fn cspect_instant_evt_actual(
     if let Some(x) = recover_optional_uuid(flow3) {
         flows.push(x)
     }
-    ctx.instant_evt(parent_uuid, ts, name, flows)
+    let mut flows_end = vec![];
+    if let Some(x) = recover_optional_uuid(flow_end1) {
+        flows_end.push(x)
+    }
+    if let Some(x) = recover_optional_uuid(flow_end2) {
+        flows_end.push(x)
+    }
+    if let Some(x) = recover_optional_uuid(flow_end3) {
+        flows_end.push(x)
+    }
+    ctx.instant_evt(parent_uuid, ts, name, flows, flows_end)
 }
 
 #[unsafe(no_mangle)]

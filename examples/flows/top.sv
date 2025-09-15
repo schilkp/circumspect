@@ -24,12 +24,13 @@ module top;
 
     #30;
     // End producer slice, while attaching a flow to the end of the slice.
-    producer_track.slice_end({data_flow});
+    producer_track.slice_end(.flows({data_flow}));
 
     #10;
 
-    // Start the second slice on consumer track, attaching the flow.
-    consumer_track.slice_begin("consume_data", {data_flow});
+    // Start the second slice on consumer track, attaching the flow which
+    // terminates here:
+    consumer_track.slice_begin("consume_data", .flows_end({data_flow}));
 
     #25;
     // End the second slice

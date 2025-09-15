@@ -80,10 +80,14 @@ package cspect_pkg;
       super.new(handle, uuid);
     endfunction
 
-    function void slice_begin(string name, uuid_t flows[] = {});
+    function void slice_begin(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {});
       int result;
       if (flows.size() > 3) begin
         $error("cspect: slice_begin supports maximum 3 flows, got %0d", flows.size());
+        return;
+      end
+      if (flows_end.size() > 3) begin
+        $error("cspect: slice_begin supports maximum 3 flows_end, got %0d", flows_end.size());
         return;
       end
       result = cspect_slice_begin(
@@ -94,6 +98,9 @@ package cspect_pkg;
           flows.size() > 0 ? flows[0] : 0,
           flows.size() > 1 ? flows[1] : 0,
           flows.size() > 2 ? flows[2] : 0,
+          flows_end.size() > 0 ? flows_end[0] : 0,
+          flows_end.size() > 1 ? flows_end[1] : 0,
+          flows_end.size() > 2 ? flows_end[2] : 0,
           `CSPECT_REPLACE_OFF
       );
       if (result != 0) begin
@@ -102,11 +109,16 @@ package cspect_pkg;
       end
     endfunction
 
-    function void slice_set(string name, uuid_t flows[] = {}, bit compress = 0);
+    function void slice_set(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {},
+                            bit compress = 0);
       int replacement_behaviour;
       int result;
       if (flows.size() > 3) begin
         $error("cspect: slice_set supports maximum 3 flows, got %0d", flows.size());
+        return;
+      end
+      if (flows_end.size() > 3) begin
+        $error("cspect: slice_set supports maximum 3 flows_end, got %0d", flows_end.size());
         return;
       end
       replacement_behaviour = compress ? `CSPECT_REPLACE_IF_DIFFERENT : `CSPECT_REPLACE;
@@ -118,6 +130,9 @@ package cspect_pkg;
           flows.size() > 0 ? flows[0] : 0,
           flows.size() > 1 ? flows[1] : 0,
           flows.size() > 2 ? flows[2] : 0,
+          flows_end.size() > 0 ? flows_end[0] : 0,
+          flows_end.size() > 1 ? flows_end[1] : 0,
+          flows_end.size() > 2 ? flows_end[2] : 0,
           replacement_behaviour
       );
       if (result != 0) begin
@@ -126,10 +141,14 @@ package cspect_pkg;
       end
     endfunction
 
-    function void slice_end(uuid_t flows[] = {}, bit force_end = 0);
+    function void slice_end(uuid_t flows[] = {}, uuid_t flows_end[] = {}, bit force_end = 0);
       int result;
       if (flows.size() > 3) begin
         $error("cspect: slice_end supports maximum 3 flows, got %0d", flows.size());
+        return;
+      end
+      if (flows_end.size() > 3) begin
+        $error("cspect: slice_end supports maximum 3 flows_end, got %0d", flows_end.size());
         return;
       end
       result = cspect_slice_end(
@@ -139,6 +158,9 @@ package cspect_pkg;
           flows.size() > 0 ? flows[0] : 0,
           flows.size() > 1 ? flows[1] : 0,
           flows.size() > 2 ? flows[2] : 0,
+          flows_end.size() > 0 ? flows_end[0] : 0,
+          flows_end.size() > 1 ? flows_end[1] : 0,
+          flows_end.size() > 2 ? flows_end[2] : 0,
           force_end
       );
       if (result != 0) begin
@@ -146,10 +168,14 @@ package cspect_pkg;
       end
     endfunction
 
-    function void instant_evt(string name, uuid_t flows[] = {});
+    function void instant_evt(string name, uuid_t flows[] = {}, uuid_t flows_end[] = {});
       int result;
       if (flows.size() > 3) begin
         $error("cspect: instant_evt supports maximum 3 flows, got %0d", flows.size());
+        return;
+      end
+      if (flows_end.size() > 3) begin
+        $error("cspect: instant_evt supports maximum 3 flows_end, got %0d", flows_end.size());
         return;
       end
       result = cspect_instant_evt(
@@ -159,7 +185,10 @@ package cspect_pkg;
           name,
           flows.size() > 0 ? flows[0] : 0,
           flows.size() > 1 ? flows[1] : 0,
-          flows.size() > 2 ? flows[2] : 0
+          flows.size() > 2 ? flows[2] : 0,
+          flows_end.size() > 0 ? flows_end[0] : 0,
+          flows_end.size() > 1 ? flows_end[1] : 0,
+          flows_end.size() > 2 ? flows_end[2] : 0
       );
       if (result != 0) begin
         $error("cspect: cspect_instant_evt failed for event '%s' with error code %0d", name,
