@@ -314,18 +314,14 @@ package cspect_pkg;
         $error("cspect: cspect_new_thread failed for thread '%s'", thread_name);
         return null;
       end
-      new_thread = new(this.ctx_chandle, uuid, this.pid, tid);
+      new_thread = new(this.ctx_chandle, uuid);
       return new_thread;
     endfunction
   endclass
 
   class thread extends track;
-    int pid;
-    int tid;
-    function new(chandle handle, uuid_t uuid, int process_id, int thread_id);
+    function new(chandle handle, uuid_t uuid);
       super.new(handle, uuid);
-      pid = process_id;
-      tid = thread_id;
     endfunction
   endclass
 
