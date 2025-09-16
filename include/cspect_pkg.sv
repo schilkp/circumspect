@@ -37,15 +37,15 @@ package cspect_pkg;
             $error("cspect: cspect_uuid_vec_new failed");
           end
         end else begin
-          automatic int result = 0;
-          result = cspect_uuid_vec_append(
+          automatic int err = 0;
+          err = cspect_uuid_vec_append(
               array,
               uuids.size() > i + 0 ? uuids[i+0] : 0,
               uuids.size() > i + 1 ? uuids[i+1] : 0,
               uuids.size() > i + 2 ? uuids[i+2] : 0,
               uuids.size() > i + 3 ? uuids[i+3] : 0
           );
-          if (result != 0) begin
+          if (err != 0) begin
             $error("cspect: cspect_uuid_vec_append failed");
           end
         end
