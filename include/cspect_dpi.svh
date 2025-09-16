@@ -1,19 +1,19 @@
 `ifndef CSPECT_DPI_SVH
 `define CSPECT_DPI_SVH
 
-// Replacement behavior constants for cspect_slice_begin
+// Replacement behavior constants for cspect_dpi_slice_begin
 `define CSPECT_REPLACE_OFF 0
 `define CSPECT_REPLACE 1
 `define CSPECT_REPLACE_IF_DIFFERENT 2
 
-import "DPI-C" function chandle cspect_uuid_vec_new(
+import "DPI-C" function chandle cspect_dpi_uuid_vec_new(
   input longint unsigned uuid0,
   input longint unsigned uuid1,
   input longint unsigned uuid2,
   input longint unsigned uuid3
 );
 
-import "DPI-C" function int cspect_uuid_vec_append(
+import "DPI-C" function int cspect_dpi_uuid_vec_append(
   input chandle uuid_vec,
   input longint unsigned uuid0,
   input longint unsigned uuid1,
@@ -21,21 +21,21 @@ import "DPI-C" function int cspect_uuid_vec_append(
   input longint unsigned uuid3
 );
 
-import "DPI-C" function int cspect_uuid_vec_delete(input chandle uuid_vec);
+import "DPI-C" function int cspect_dpi_uuid_vec_delete(input chandle uuid_vec);
 
-import "DPI-C" function chandle cspect_new(
+import "DPI-C" function chandle cspect_dpi_new(
   input string trace_path,
   input real timescale,
   input int unsigned time_mult
 );
 
-import "DPI-C" function int cspect_finish(input chandle cspect_ctx);
+import "DPI-C" function int cspect_dpi_finish(input chandle cspect_ctx);
 
-import "DPI-C" function int cspect_flush(input chandle cspect_ctx);
+import "DPI-C" function int cspect_dpi_flush(input chandle cspect_ctx);
 
-import "DPI-C" function longint unsigned cspect_new_uuid(input chandle cspect_ctx);
+import "DPI-C" function longint unsigned cspect_dpi_new_uuid(input chandle cspect_ctx);
 
-import "DPI-C" function longint unsigned cspect_new_track(
+import "DPI-C" function longint unsigned cspect_dpi_new_track(
   input chandle cspect_ctx,
   input string name,
   input longint unsigned parent_uuid,
@@ -44,7 +44,7 @@ import "DPI-C" function longint unsigned cspect_new_track(
   input int child_order_rank
 );
 
-import "DPI-C" function int cspect_slice_begin(
+import "DPI-C" function int cspect_dpi_slice_begin(
   input chandle cspect_ctx,
   input longint unsigned parent_uuid,
   input real ts,
@@ -63,7 +63,7 @@ import "DPI-C" function int cspect_slice_begin(
   input longint unsigned correlation_id
 );
 
-import "DPI-C" function int cspect_slice_end(
+import "DPI-C" function int cspect_dpi_slice_end(
   input chandle cspect_ctx,
   input longint unsigned parent_uuid,
   input real ts,
@@ -81,7 +81,7 @@ import "DPI-C" function int cspect_slice_end(
   input longint unsigned correlation_id
 );
 
-import "DPI-C" function int cspect_instant_evt(
+import "DPI-C" function int cspect_dpi_instant_evt(
   input chandle cspect_ctx,
   input longint unsigned parent_uuid,
   input real ts,
@@ -99,7 +99,7 @@ import "DPI-C" function int cspect_instant_evt(
   input longint unsigned correlation_id
 );
 
-import "DPI-C" function longint unsigned cspect_new_process(
+import "DPI-C" function longint unsigned cspect_dpi_new_process(
   input chandle cspect_ctx,
   input int pid,
   input string process_name,
@@ -110,7 +110,7 @@ import "DPI-C" function longint unsigned cspect_new_process(
   input int child_order_rank
 );
 
-import "DPI-C" function longint unsigned cspect_new_thread(
+import "DPI-C" function longint unsigned cspect_dpi_new_thread(
   input chandle cspect_ctx,
   input int pid,
   input int tid,
@@ -120,7 +120,7 @@ import "DPI-C" function longint unsigned cspect_new_thread(
   input int child_order_rank
 );
 
-import "DPI-C" function longint unsigned cspect_new_counter(
+import "DPI-C" function longint unsigned cspect_dpi_new_counter(
   input chandle cspect_ctx,
   input string name,
   input string unit_name,
@@ -131,7 +131,7 @@ import "DPI-C" function longint unsigned cspect_new_counter(
   input int child_order_rank
 );
 
-import "DPI-C" function int cspect_int_counter_evt(
+import "DPI-C" function int cspect_dpi_int_counter_evt(
   input chandle cspect_ctx,
   input longint unsigned track_uuid,
   input real ts,
@@ -139,7 +139,7 @@ import "DPI-C" function int cspect_int_counter_evt(
   input bit compress
 );
 
-import "DPI-C" function int cspect_float_counter_evt(
+import "DPI-C" function int cspect_dpi_float_counter_evt(
   input chandle cspect_ctx,
   input longint unsigned track_uuid,
   input real ts,

@@ -15,7 +15,7 @@ use std::{
 type UUIDVecCHandle = Mutex<Vec<u64>>;
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_uuid_vec_new(
+pub extern "C" fn cspect_dpi_uuid_vec_new(
     uuid0: c_ulonglong,
     uuid1: c_ulonglong,
     uuid2: c_ulonglong,
@@ -32,7 +32,7 @@ pub extern "C" fn cspect_uuid_vec_new(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_uuid_vec_append(
+pub extern "C" fn cspect_dpi_uuid_vec_append(
     uuid_vec: *mut c_void,
     uuid0: c_ulonglong,
     uuid1: c_ulonglong,
@@ -64,7 +64,7 @@ pub extern "C" fn cspect_uuid_vec_append(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_uuid_vec_delete(uuid_vec: *mut c_void) -> c_int {
+pub extern "C" fn cspect_dpi_uuid_vec_delete(uuid_vec: *mut c_void) -> c_int {
     if uuid_vec.is_null() {
         println!("cspect: uuid_vec is nullptr!");
         return 1;
@@ -83,12 +83,12 @@ pub extern "C" fn cspect_uuid_vec_delete(uuid_vec: *mut c_void) -> c_int {
 type CtxCHandle = Mutex<Context>;
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_new(
+pub extern "C" fn cspect_dpi_new(
     trace_path: *const c_char,
     timescale: c_double,
     time_mult: c_uint,
 ) -> *mut c_void {
-    match cspect_new_actual(trace_path, timescale, time_mult) {
+    match cspect_new(trace_path, timescale, time_mult) {
         Ok(ctx) => Box::into_raw(ctx) as *mut c_void,
         Err(e) => {
             println!("cspect: {}", e);
@@ -97,7 +97,7 @@ pub extern "C" fn cspect_new(
     }
 }
 
-fn cspect_new_actual(
+fn cspect_new(
     trace_path: *const c_char,
     timescale: c_double,
     time_mult: c_uint,
@@ -110,7 +110,7 @@ fn cspect_new_actual(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_finish(cspect_ctx: *mut c_void) -> c_int {
+pub extern "C" fn cspect_dpi_finish(cspect_ctx: *mut c_void) -> c_int {
     // Re-introduce chandle objects into the rust memory model.
     if cspect_ctx.is_null() {
         println!("cspect: cspect_ctx is nullptr!");
@@ -120,7 +120,7 @@ pub extern "C" fn cspect_finish(cspect_ctx: *mut c_void) -> c_int {
 
     // Since this function also deletes the context, we don't have to
     // re-leak the context.
-    match cspect_finish_actual(&cspect_ctx) {
+    match cspect_finish(&cspect_ctx) {
         Ok(()) => 0,
         Err(e) => {
             println!("cspect: {}", e);
@@ -129,7 +129,7 @@ pub extern "C" fn cspect_finish(cspect_ctx: *mut c_void) -> c_int {
     }
 }
 
-fn cspect_finish_actual(ctx: &Mutex<Context>) -> Result<(), String> {
+fn cspect_finish(ctx: &Mutex<Context>) -> Result<(), String> {
     let mut ctx = ctx.lock().unwrap();
     ctx.flush()
 }
@@ -197,25 +197,25 @@ macro_rules! object_function_body_uuid_ret {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_flush(cspect_ctx: *mut c_void) -> c_int {
-    object_function_body_err_ret!(cspect_flush_actual, cspect_ctx)
+pub extern "C" fn cspect_dpi_flush(cspect_ctx: *mut c_void) -> c_int {
+    object_function_body_err_ret!(cspect_flush, cspect_ctx)
 }
 
-fn cspect_flush_actual(ctx: &mut Context) -> Result<(), String> {
+fn cspect_flush(ctx: &mut Context) -> Result<(), String> {
     ctx.flush()
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_new_uuid(cspect_ctx: *mut c_void) -> c_ulonglong {
-    object_function_body_uuid_ret!(cspect_new_uuid_actual, cspect_ctx)
+pub extern "C" fn cspect_dpi_new_uuid(cspect_ctx: *mut c_void) -> c_ulonglong {
+    object_function_body_uuid_ret!(cspect_new_uuid, cspect_ctx)
 }
 
-fn cspect_new_uuid_actual(ctx: &mut Context) -> Result<u64, String> {
+fn cspect_new_uuid(ctx: &mut Context) -> Result<u64, String> {
     Ok(ctx.new_uuid())
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_new_track(
+pub extern "C" fn cspect_dpi_new_track(
     cspect_ctx: *mut c_void,
     name: *const c_char,
     parent_uuid: c_ulonglong,
@@ -224,7 +224,7 @@ pub extern "C" fn cspect_new_track(
     child_order_rank: c_int,
 ) -> c_ulonglong {
     object_function_body_uuid_ret!(
-        cspect_new_track_actual,
+        cspect_new_track,
         cspect_ctx,
         name,
         parent_uuid,
@@ -234,7 +234,7 @@ pub extern "C" fn cspect_new_track(
     )
 }
 
-fn cspect_new_track_actual(
+fn cspect_new_track(
     ctx: &mut Context,
     name: *const c_char,
     parent_uuid: c_ulonglong,
@@ -257,7 +257,7 @@ fn cspect_new_track_actual(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_slice_begin(
+pub extern "C" fn cspect_dpi_slice_begin(
     cspect_ctx: *mut c_void,
     parent_uuid: c_ulonglong,
     ts: c_double,
@@ -276,7 +276,7 @@ pub extern "C" fn cspect_slice_begin(
     correlation_id: c_ulonglong,
 ) -> c_int {
     object_function_body_err_ret!(
-        cspect_slice_begin_actual,
+        cspect_slice_begin,
         cspect_ctx,
         parent_uuid,
         ts,
@@ -296,7 +296,7 @@ pub extern "C" fn cspect_slice_begin(
     )
 }
 
-fn cspect_slice_begin_actual(
+fn cspect_slice_begin(
     ctx: &mut Context,
     parent_uuid: c_ulonglong,
     ts: c_double,
@@ -333,7 +333,7 @@ fn cspect_slice_begin_actual(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_slice_end(
+pub extern "C" fn cspect_dpi_slice_end(
     cspect_ctx: *mut c_void,
     parent_uuid: c_ulonglong,
     ts: c_double,
@@ -351,7 +351,7 @@ pub extern "C" fn cspect_slice_end(
     correlation_id: c_ulonglong,
 ) -> c_int {
     object_function_body_err_ret!(
-        cspect_slice_end_actual,
+        cspect_slice_end,
         cspect_ctx,
         parent_uuid,
         ts,
@@ -370,7 +370,7 @@ pub extern "C" fn cspect_slice_end(
     )
 }
 
-fn cspect_slice_end_actual(
+fn cspect_slice_end(
     ctx: &mut Context,
     parent_uuid: c_ulonglong,
     ts: c_double,
@@ -397,7 +397,7 @@ fn cspect_slice_end_actual(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_instant_evt(
+pub extern "C" fn cspect_dpi_instant_evt(
     cspect_ctx: *mut c_void,
     parent_uuid: c_ulonglong,
     ts: c_double,
@@ -415,7 +415,7 @@ pub extern "C" fn cspect_instant_evt(
     correlation_id: c_ulonglong,
 ) -> c_int {
     object_function_body_err_ret!(
-        cspect_instant_evt_actual,
+        cspect_instant_evt,
         cspect_ctx,
         parent_uuid,
         ts,
@@ -434,7 +434,7 @@ pub extern "C" fn cspect_instant_evt(
     )
 }
 
-fn cspect_instant_evt_actual(
+fn cspect_instant_evt(
     ctx: &mut Context,
     parent_uuid: c_ulonglong,
     ts: c_double,
@@ -461,7 +461,7 @@ fn cspect_instant_evt_actual(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_new_process(
+pub extern "C" fn cspect_dpi_new_process(
     cspect_ctx: *mut c_void,
     pid: c_int,
     process_name: *const c_char,
@@ -472,7 +472,7 @@ pub extern "C" fn cspect_new_process(
     child_order_rank: c_int,
 ) -> c_ulonglong {
     object_function_body_uuid_ret!(
-        cspect_new_process_actual,
+        cspect_new_process,
         cspect_ctx,
         pid,
         process_name,
@@ -484,7 +484,7 @@ pub extern "C" fn cspect_new_process(
     )
 }
 
-fn cspect_new_process_actual(
+fn cspect_new_process(
     ctx: &mut Context,
     pid: c_int,
     process_name: *const c_char,
@@ -514,7 +514,7 @@ fn cspect_new_process_actual(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_new_thread(
+pub extern "C" fn cspect_dpi_new_thread(
     cspect_ctx: *mut c_void,
     pid: c_int,
     tid: c_int,
@@ -524,7 +524,7 @@ pub extern "C" fn cspect_new_thread(
     child_order_rank: c_int,
 ) -> c_ulonglong {
     object_function_body_uuid_ret!(
-        cspect_new_thread_actual,
+        cspect_new_thread,
         cspect_ctx,
         pid,
         tid,
@@ -535,7 +535,7 @@ pub extern "C" fn cspect_new_thread(
     )
 }
 
-fn cspect_new_thread_actual(
+fn cspect_new_thread(
     ctx: &mut Context,
     pid: c_int,
     tid: c_int,
@@ -560,7 +560,7 @@ fn cspect_new_thread_actual(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_new_counter(
+pub extern "C" fn cspect_dpi_new_counter(
     cspect_ctx: *mut c_void,
     name: *const c_char,
     unit_name: *const c_char,
@@ -571,7 +571,7 @@ pub extern "C" fn cspect_new_counter(
     child_order_rank: c_int,
 ) -> c_ulonglong {
     object_function_body_uuid_ret!(
-        cspect_new_counter_actual,
+        cspect_new_counter,
         cspect_ctx,
         name,
         unit_name,
@@ -583,7 +583,7 @@ pub extern "C" fn cspect_new_counter(
     )
 }
 
-fn cspect_new_counter_actual(
+fn cspect_new_counter(
     ctx: &mut Context,
     name: *const c_char,
     unit_name: *const c_char,
@@ -613,7 +613,7 @@ fn cspect_new_counter_actual(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_int_counter_evt(
+pub extern "C" fn cspect_dpi_int_counter_evt(
     cspect_ctx: *mut c_void,
     track_uuid: c_ulonglong,
     ts: c_double,
@@ -621,7 +621,7 @@ pub extern "C" fn cspect_int_counter_evt(
     compress: svBit,
 ) -> c_int {
     object_function_body_err_ret!(
-        cspect_int_counter_evt_actual,
+        cspect_int_counter_evt,
         cspect_ctx,
         track_uuid,
         ts,
@@ -630,7 +630,7 @@ pub extern "C" fn cspect_int_counter_evt(
     )
 }
 
-fn cspect_int_counter_evt_actual(
+fn cspect_int_counter_evt(
     ctx: &mut Context,
     track_uuid: c_ulonglong,
     ts: c_double,
@@ -645,7 +645,7 @@ fn cspect_int_counter_evt_actual(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_float_counter_evt(
+pub extern "C" fn cspect_dpi_float_counter_evt(
     cspect_ctx: *mut c_void,
     track_uuid: c_ulonglong,
     ts: c_double,
@@ -653,7 +653,7 @@ pub extern "C" fn cspect_float_counter_evt(
     compress: svBit,
 ) -> c_int {
     object_function_body_err_ret!(
-        cspect_float_counter_evt_actual,
+        cspect_float_counter_evt,
         cspect_ctx,
         track_uuid,
         ts,
@@ -662,7 +662,7 @@ pub extern "C" fn cspect_float_counter_evt(
     )
 }
 
-fn cspect_float_counter_evt_actual(
+fn cspect_float_counter_evt(
     ctx: &mut Context,
     track_uuid: c_ulonglong,
     ts: c_double,

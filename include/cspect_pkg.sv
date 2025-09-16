@@ -27,18 +27,18 @@ package cspect_pkg;
     if (uuids.size() > 4) begin
       for (int i = 4; i < uuids.size(); i += 4) begin
         if (array == 0) begin
-          array = cspect_uuid_vec_new(
+          array = cspect_dpi_uuid_vec_new(
               uuids.size() > i + 0 ? uuids[i+0] : 0,
               uuids.size() > i + 1 ? uuids[i+1] : 0,
               uuids.size() > i + 2 ? uuids[i+2] : 0,
               uuids.size() > i + 3 ? uuids[i+3] : 0
           );
           if (array == 0) begin
-            $error("cspect: cspect_uuid_vec_new failed");
+            $error("cspect: cspect_dpi_uuid_vec_new failed.");
           end
         end else begin
           automatic int err = 0;
-          err = cspect_uuid_vec_append(
+          err = cspect_dpi_uuid_vec_append(
               array,
               uuids.size() > i + 0 ? uuids[i+0] : 0,
               uuids.size() > i + 1 ? uuids[i+1] : 0,
@@ -46,7 +46,7 @@ package cspect_pkg;
               uuids.size() > i + 3 ? uuids[i+3] : 0
           );
           if (err != 0) begin
-            $error("cspect: cspect_uuid_vec_append failed");
+            $error("cspect: cspect_dpi_uuid_vec_append failed with error code %0d.", err);
           end
         end
       end
@@ -62,9 +62,9 @@ package cspect_pkg;
 
   function automatic void __dpi_uuid_vec_delete(__dpi_uuid_array_t vec);
     if (vec.others != 0) begin
-      automatic int result = cspect_uuid_vec_delete(vec.others);
+      automatic int result = cspect_dpi_uuid_vec_delete(vec.others);
       if (result != 0) begin
-        $error("cspect: cspect_uuid_vec_append failed");
+        $error("cspect: cspect_dpi_uuid_vec_delete failed with error code %0d.", result);
       end
     end
   endfunction
@@ -86,9 +86,9 @@ package cspect_pkg;
     endfunction
 
     function uuid_t new_uuid();
-      automatic uuid_t uuid = cspect_new_uuid(ctx_chandle);
+      automatic uuid_t uuid = cspect_dpi_new_uuid(ctx_chandle);
       if (uuid == 0) begin
-        $error("cspect: cspect_new_uuid failed");
+        $error("cspect: cspect_dpi_new_uuid failed.");
       end
       return uuid;
     endfunction
@@ -96,11 +96,11 @@ package cspect_pkg;
     function track new_track(string name, string description = "",
                              child_ordering_e child_ordering = Unknown, int child_order_rank = 0);
       track new_track;
-      uuid_t uuid = cspect_new_track(
+      uuid_t uuid = cspect_dpi_new_track(
           ctx_chandle, name, this.scope_uuid, description, child_ordering, child_order_rank
       );
       if (uuid == 0) begin
-        $error("cspect: cspect_new_track failed for track '%s'", name);
+        $error("cspect: cspect_dpi_new_track failed for track '%s'.", name);
         return null;
       end
       new_track = new(this.ctx_chandle, uuid);
@@ -111,7 +111,7 @@ package cspect_pkg;
                                  string description = "", child_ordering_e child_ordering = Unknown,
                                  int child_order_rank = 0);
       counter new_counter;
-      uuid_t uuid = cspect_new_counter(
+      uuid_t uuid = cspect_dpi_new_counter(
           ctx_chandle,
           name,
           unit_name,
@@ -122,7 +122,7 @@ package cspect_pkg;
           child_order_rank
       );
       if (uuid == 0) begin
-        $error("cspect: cspect_new_counter failed for counter '%s'", name);
+        $error("cspect: cspect_dpi_new_counter failed for counter '%s'.", name);
         return null;
       end
       new_counter = new(this.ctx_chandle, uuid);
@@ -143,7 +143,7 @@ package cspect_pkg;
       automatic __dpi_uuid_array_t dpi_flows, dpi_flows_end;
       dpi_flows = __dpi_uuid_vec(flows);
       dpi_flows_end = __dpi_uuid_vec(flows_end);
-      result = cspect_slice_begin(
+      result = cspect_dpi_slice_begin(
           this.ctx_chandle,
           this.scope_uuid,
           $realtime,
@@ -162,7 +162,7 @@ package cspect_pkg;
           correlation_id
       );
       if (result != 0) begin
-        $error("cspect: cspect_slice_begin failed for slice '%s' with error code %0d", name,
+        $error("cspect: cspect_dpi_slice_begin failed for slice '%s' with error code %0d.", name,
                result);
       end
       __dpi_uuid_vec_delete(dpi_flows);
@@ -177,7 +177,7 @@ package cspect_pkg;
       dpi_flows = __dpi_uuid_vec(flows);
       dpi_flows_end = __dpi_uuid_vec(flows_end);
       replacement_behaviour = compress ? `CSPECT_REPLACE_IF_DIFFERENT : `CSPECT_REPLACE;
-      result = cspect_slice_begin(
+      result = cspect_dpi_slice_begin(
           this.ctx_chandle,
           this.scope_uuid,
           $realtime,
@@ -196,7 +196,7 @@ package cspect_pkg;
           correlation_id
       );
       if (result != 0) begin
-        $error("cspect: cspect_slice_begin failed for slice '%s' with error code %0d", name,
+        $error("cspect: cspect_dpi_slice_begin failed for slice '%s' with error code %0d.", name,
                result);
       end
       __dpi_uuid_vec_delete(dpi_flows);
@@ -209,7 +209,7 @@ package cspect_pkg;
       automatic __dpi_uuid_array_t dpi_flows, dpi_flows_end;
       dpi_flows = __dpi_uuid_vec(flows);
       dpi_flows_end = __dpi_uuid_vec(flows_end);
-      result = cspect_slice_end(
+      result = cspect_dpi_slice_end(
           this.ctx_chandle,
           this.scope_uuid,
           $realtime,
@@ -227,7 +227,7 @@ package cspect_pkg;
           correlation_id
       );
       if (result != 0) begin
-        $error("cspect: cspect_slice_end failed with error code %0d", result);
+        $error("cspect: cspect_dpi_slice_end failed with error code %0d.", result);
       end
       __dpi_uuid_vec_delete(dpi_flows);
       __dpi_uuid_vec_delete(dpi_flows_end);
@@ -239,7 +239,7 @@ package cspect_pkg;
       automatic __dpi_uuid_array_t dpi_flows, dpi_flows_end;
       dpi_flows = __dpi_uuid_vec(flows);
       dpi_flows_end = __dpi_uuid_vec(flows_end);
-      result = cspect_instant_evt(
+      result = cspect_dpi_instant_evt(
           this.ctx_chandle,
           this.scope_uuid,
           $realtime,
@@ -257,7 +257,7 @@ package cspect_pkg;
           correlation_id
       );
       if (result != 0) begin
-        $error("cspect: cspect_instant_evt failed for event '%s' with error code %0d", name,
+        $error("cspect: cspect_dpi_instant_evt failed for event '%s' with error code %0d.", name,
                result);
       end
       __dpi_uuid_vec_delete(dpi_flows);
@@ -276,22 +276,22 @@ package cspect_pkg;
     function void log_int(longint unsigned val, bit compress = 0);
       automatic
       int
-      result = cspect_int_counter_evt(
+      result = cspect_dpi_int_counter_evt(
           this.ctx_chandle, this.counter_uuid, $realtime, val, compress
       );
       if (result != 0) begin
-        $error("cspect: cspect_int_counter_evt failed with error code %0d", result);
+        $error("cspect: cspect_dpi_int_counter_evt failed with error code %0d.", result);
       end
     endfunction
 
     function void log_float(real val, bit compress = 0);
       automatic
       int
-      result = cspect_float_counter_evt(
+      result = cspect_dpi_float_counter_evt(
           this.ctx_chandle, this.counter_uuid, $realtime, val, compress
       );
       if (result != 0) begin
-        $error("cspect: cspect_float_counter_evt failed with error code %0d", result);
+        $error("cspect: cspect_dpi_float_counter_evt failed with error code %0d.", result);
       end
     endfunction
   endclass
@@ -307,11 +307,11 @@ package cspect_pkg;
     function thread new_thread(int tid, string thread_name, string description = "",
                                child_ordering_e child_ordering = Unknown, int child_order_rank = 0);
       thread new_thread;
-      uuid_t uuid = cspect_new_thread(
+      uuid_t uuid = cspect_dpi_new_thread(
           ctx_chandle, pid, tid, thread_name, description, child_ordering, child_order_rank
       );
       if (uuid == 0) begin
-        $error("cspect: cspect_new_thread failed for thread '%s'", thread_name);
+        $error("cspect: cspect_dpi_new_thread failed for thread '%s'.", thread_name);
         return null;
       end
       new_thread = new(this.ctx_chandle, uuid);
@@ -328,25 +328,25 @@ package cspect_pkg;
   class ctx extends scope;
     function new(string trace_path, int unsigned time_mult = 1);
       super.new(0, 0);
-      this.ctx_chandle = cspect_new(trace_path, 0.000000001, time_mult);
+      this.ctx_chandle = cspect_dpi_new(trace_path, 0.000000001, time_mult);
       if (this.ctx_chandle == null) begin
-        $error("cspect: Failed to create cspect context");
+        $error("cspect:  cspect_dpi_new failed.");
       end
     endfunction
 
     function void finish();
       automatic int result;
-      result = cspect_finish(this.ctx_chandle);
+      result = cspect_dpi_finish(this.ctx_chandle);
       if (result != 0) begin
-        $error("cspect: cspect_finish failed with error code %0d", result);
+        $error("cspect: cspect_dpi_finish failed with error code %0d.", result);
       end
       this.ctx_chandle = null;
     endfunction
 
     function void flush();
-      automatic int result = cspect_flush(this.ctx_chandle);
+      automatic int result = cspect_dpi_flush(this.ctx_chandle);
       if (result != 0) begin
-        $error("cspect: cspect_flush failed with error code %0d", result);
+        $error("cspect: cspect_dpi_flush failed with error code %0d.", result);
       end
     endfunction
 
@@ -354,7 +354,7 @@ package cspect_pkg;
                                  string description = "", child_ordering_e child_ordering = Unknown,
                                  int child_order_rank = 0);
       process new_process;
-      uuid_t uuid = cspect_new_process(
+      uuid_t uuid = cspect_dpi_new_process(
           ctx_chandle,
           pid,
           process_name,
@@ -365,7 +365,7 @@ package cspect_pkg;
           child_order_rank
       );
       if (uuid == 0) begin
-        $error("cspect: cspect_new_process failed for process '%s'", process_name);
+        $error("cspect: cspect_dpi_new_process failed for process '%s'.", process_name);
         return null;
       end
       new_process = new(this.ctx_chandle, uuid, pid);
