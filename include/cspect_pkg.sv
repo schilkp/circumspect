@@ -26,14 +26,14 @@ package cspect_pkg;
 
     if (uuids.size() > 4) begin
       for (int i = 4; i < uuids.size(); i += 4) begin
-        if (array == 0) begin
+        if (array == null) begin
           array = cspect_dpi_uuid_vec_new(
               uuids.size() > i + 0 ? uuids[i+0] : 0,
               uuids.size() > i + 1 ? uuids[i+1] : 0,
               uuids.size() > i + 2 ? uuids[i+2] : 0,
               uuids.size() > i + 3 ? uuids[i+3] : 0
           );
-          if (array == 0) begin
+          if (array == null) begin
             $error("cspect: cspect_dpi_uuid_vec_new failed.");
           end
         end else begin
@@ -87,7 +87,7 @@ package cspect_pkg;
 
     function uuid_t new_uuid();
       automatic uuid_t uuid = cspect_dpi_new_uuid(ctx_chandle);
-      if (uuid == 0) begin
+      if (uuid == null) begin
         $error("cspect: cspect_dpi_new_uuid failed.");
       end
       return uuid;
@@ -99,7 +99,7 @@ package cspect_pkg;
       uuid_t uuid = cspect_dpi_new_track(
           ctx_chandle, name, this.scope_uuid, description, child_ordering, child_order_rank
       );
-      if (uuid == 0) begin
+      if (uuid == null) begin
         $error("cspect: cspect_dpi_new_track failed for track '%s'.", name);
         return null;
       end
@@ -121,7 +121,7 @@ package cspect_pkg;
           child_ordering,
           child_order_rank
       );
-      if (uuid == 0) begin
+      if (uuid == null) begin
         $error("cspect: cspect_dpi_new_counter failed for counter '%s'.", name);
         return null;
       end
@@ -310,7 +310,7 @@ package cspect_pkg;
       uuid_t uuid = cspect_dpi_new_thread(
           ctx_chandle, pid, tid, thread_name, description, child_ordering, child_order_rank
       );
-      if (uuid == 0) begin
+      if (uuid == null) begin
         $error("cspect: cspect_dpi_new_thread failed for thread '%s'.", thread_name);
         return null;
       end
@@ -364,7 +364,7 @@ package cspect_pkg;
           child_ordering,
           child_order_rank
       );
-      if (uuid == 0) begin
+      if (uuid == null) begin
         $error("cspect: cspect_dpi_new_process failed for process '%s'.", process_name);
         return null;
       end
