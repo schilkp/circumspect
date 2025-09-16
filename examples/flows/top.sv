@@ -32,7 +32,7 @@ module top;
 
       // Create a flow that will connect the metadata event to the
       // "consume_data" slice:
-      flow_id = cspect.new_flow();
+      flow_id = cspect.new_uuid();
 
       metadata_flows = {metadata_flows, flow_id};
 
@@ -43,7 +43,7 @@ module top;
     #20;
     // Create a flow that will connect the "produce_data" slice to the
     // "consume_data" slice:
-    data_flow = cspect.new_flow();
+    data_flow = cspect.new_uuid();
     // End producer slice, while attaching a flow to the end of the slice:
     producer_track.slice_end(.flows({data_flow}));
 

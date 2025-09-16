@@ -22,9 +22,9 @@ module top;
     track3 = cspect.new_track("Track 3");
 
     // Create three groups/correlations:
-    group1 = cspect.new_correlation_id();
-    group2 = cspect.new_correlation_id();
-    group3 = cspect.new_correlation_id();
+    group1 = cspect.new_uuid();
+    group2 = cspect.new_uuid();
+    group3 = cspect.new_uuid();
 
     #10;
     track1.slice_begin("track1-group1", .correlation_id(group1));

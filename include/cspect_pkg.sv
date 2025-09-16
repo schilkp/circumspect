@@ -85,18 +85,10 @@ package cspect_pkg;
       scope_uuid = uuid;
     endfunction
 
-    function uuid_t new_flow();
-      automatic uuid_t uuid = cspect_new_flow(ctx_chandle);
+    function uuid_t new_uuid();
+      automatic uuid_t uuid = cspect_new_uuid(ctx_chandle);
       if (uuid == 0) begin
-        $error("cspect: cspect_new_flow failed");
-      end
-      return uuid;
-    endfunction
-
-    function uuid_t new_correlation_id();
-      automatic uuid_t uuid = cspect_new_correlation_id(ctx_chandle);
-      if (uuid == 0) begin
-        $error("cspect: cspect_new_correlation_id failed");
+        $error("cspect: cspect_new_uuid failed");
       end
       return uuid;
     endfunction

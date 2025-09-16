@@ -126,8 +126,8 @@ impl Context {
             .map_err(|e| format!("Failed to flush to trace file - {e}"))
     }
 
-    pub fn new_flow(&mut self) -> u64 {
-        self.synthetto.new_flow()
+    pub fn new_uuid(&mut self) -> u64 {
+        self.synthetto.new_uuid()
     }
 
     pub fn new_track(

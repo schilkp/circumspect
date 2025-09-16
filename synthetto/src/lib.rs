@@ -53,16 +53,12 @@ impl Synthetto {
         }
     }
 
-    fn next_uuid(&mut self) -> u64 {
+    pub fn new_uuid(&mut self) -> u64 {
         let uuid = self.uuid_cnt;
         self.uuid_cnt += 1;
         // Grab LSBs and move them to the MSBs:
         let lsbs = uuid & 0xFFF;
         (uuid >> 12) | (lsbs << 52)
-    }
-
-    pub fn new_flow(&mut self) -> u64 {
-        self.next_uuid()
     }
 
     pub fn new_process<B: BufMut>(
@@ -76,7 +72,7 @@ impl Synthetto {
         sibling_order_rank: Option<i32>,
         buf: &mut B,
     ) -> Result<u64, EncodeError> {
-        let uuid = self.next_uuid();
+        let uuid = self.new_uuid();
 
         let evt = TracePacket {
             timestamp: None,
@@ -120,7 +116,7 @@ impl Synthetto {
         sibling_order_rank: Option<i32>,
         buf: &mut B,
     ) -> Result<u64, EncodeError> {
-        let uuid = self.next_uuid();
+        let uuid = self.new_uuid();
 
         let evt = TracePacket {
             timestamp: None,
@@ -161,7 +157,7 @@ impl Synthetto {
         sibling_order_rank: Option<i32>,
         buf: &mut B,
     ) -> Result<u64, EncodeError> {
-        let uuid = self.next_uuid();
+        let uuid = self.new_uuid();
 
         let evt = TracePacket {
             timestamp: None,
@@ -202,7 +198,7 @@ impl Synthetto {
         sibling_order_rank: Option<i32>,
         buf: &mut B,
     ) -> Result<u64, EncodeError> {
-        let uuid = self.next_uuid();
+        let uuid = self.new_uuid();
 
         let evt = TracePacket {
             timestamp: None,

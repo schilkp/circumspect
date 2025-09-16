@@ -206,21 +206,12 @@ fn cspect_flush_actual(ctx: &mut Context) -> Result<(), String> {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn cspect_new_flow(cspect_ctx: *mut c_void) -> c_ulonglong {
-    object_function_body_uuid_ret!(cspect_new_flow_actual, cspect_ctx)
+pub extern "C" fn cspect_new_uuid(cspect_ctx: *mut c_void) -> c_ulonglong {
+    object_function_body_uuid_ret!(cspect_new_uuid_actual, cspect_ctx)
 }
 
-fn cspect_new_flow_actual(ctx: &mut Context) -> Result<u64, String> {
-    Ok(ctx.new_flow())
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn cspect_new_correlation_id(cspect_ctx: *mut c_void) -> c_ulonglong {
-    object_function_body_uuid_ret!(cspect_new_correlation_id_actual, cspect_ctx)
-}
-
-fn cspect_new_correlation_id_actual(ctx: &mut Context) -> Result<u64, String> {
-    Ok(ctx.new_flow())
+fn cspect_new_uuid_actual(ctx: &mut Context) -> Result<u64, String> {
+    Ok(ctx.new_uuid())
 }
 
 #[unsafe(no_mangle)]

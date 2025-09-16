@@ -33,9 +33,7 @@ import "DPI-C" function int cspect_finish(input chandle cspect_ctx);
 
 import "DPI-C" function int cspect_flush(input chandle cspect_ctx);
 
-import "DPI-C" function longint unsigned cspect_new_flow(input chandle cspect_ctx);
-
-import "DPI-C" function longint unsigned cspect_new_correlation_id(input chandle cspect_ctx);
+import "DPI-C" function longint unsigned cspect_new_uuid(input chandle cspect_ctx);
 
 import "DPI-C" function longint unsigned cspect_new_track(
   input chandle cspect_ctx,
