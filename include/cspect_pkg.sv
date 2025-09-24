@@ -3,6 +3,11 @@
 `timescale 1ns / 1ns
 package cspect_pkg;
 
+  // Forward typedefs:
+  typedef class track;
+  typedef class counter;
+  typedef class thread;
+
   typedef longint unsigned uuid_t;
 
   typedef enum int {
