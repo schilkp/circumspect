@@ -126,7 +126,7 @@ jobs:
       - name: Install Verilator
         uses: ./.github/actions/setup-verilator
         with:
-          verilator-version: v5.038
+          verilator-version: 63f5f5c328fa15a839c7316b711f9e1558ad67ed 
 
       - name: Install Python dependencies
         run: uv sync
