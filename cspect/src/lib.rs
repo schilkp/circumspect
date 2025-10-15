@@ -48,7 +48,7 @@ impl PartialEq for TrackSlice {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-enum CounterValue {
+pub enum CounterValue {
     Int(i64),
     Float(f64),
 }
@@ -70,7 +70,7 @@ struct Track {
 }
 
 #[derive(Debug)]
-struct Context {
+pub struct Context {
     w: BufWriter<File>,
     synthetto: Synthetto,
     timescale: f64,
