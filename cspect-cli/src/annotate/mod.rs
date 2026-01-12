@@ -3,7 +3,7 @@ pub mod disasm;
 
 use anyhow::anyhow;
 use log::{debug, trace, warn};
-use synthetto::{Message, TracePacket, decode_length_delimiter};
+use synthetto::{decode_length_delimiter, Message, TracePacket};
 use tempfile::NamedTempFile;
 
 use std::{
@@ -191,7 +191,11 @@ fn annotate_packet(
         }
     }
 
-    if did_modify { Ok(Some(pkt)) } else { Ok(None) }
+    if did_modify {
+        Ok(Some(pkt))
+    } else {
+        Ok(None)
+    }
 }
 
 fn annotate_string(

@@ -1,6 +1,6 @@
 #![allow(clippy::too_many_arguments)]
 
-pub use prost::{EncodeError, Message, bytes::BufMut, decode_length_delimiter};
+pub use prost::{bytes::BufMut, decode_length_delimiter, EncodeError, Message};
 
 pub mod protos {
     #![allow(clippy::large_enum_variant)]

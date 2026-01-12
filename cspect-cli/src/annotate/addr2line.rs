@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use log::{trace, warn};
 use std::{borrow::Cow, path::Path};
 
-use addr2line::{Loader, Location, fallible_iterator::FallibleIterator, gimli};
+use addr2line::{fallible_iterator::FallibleIterator, gimli, Loader, Location};
 
 use crate::utils;
 

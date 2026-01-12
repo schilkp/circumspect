@@ -1,8 +1,8 @@
 use synthetto::ChildOrder;
 
-use crate::{Context, CounterValue, ReplacementBehaviour, svdpi::svBit};
+use crate::{svdpi::svBit, Context, CounterValue, ReplacementBehaviour};
 use std::{
-    ffi::{CStr, c_char, c_double, c_int, c_uint, c_ulonglong, c_void},
+    ffi::{c_char, c_double, c_int, c_uint, c_ulonglong, c_void, CStr},
     path::PathBuf,
     ptr::null_mut,
     str::Utf8Error,
@@ -707,7 +707,11 @@ fn recover_bool(val: svBit) -> bool {
 }
 
 fn recover_optional_i32(val: c_int) -> Option<i32> {
-    if val == 0 { None } else { Some(val) }
+    if val == 0 {
+        None
+    } else {
+        Some(val)
+    }
 }
 
 fn recover_required_uuid(val: c_ulonglong) -> Result<u64, String> {
@@ -718,7 +722,11 @@ fn recover_required_uuid(val: c_ulonglong) -> Result<u64, String> {
 }
 
 fn recover_optional_uuid(val: c_ulonglong) -> Option<u64> {
-    if val == 0 { None } else { Some(val) }
+    if val == 0 {
+        None
+    } else {
+        Some(val)
+    }
 }
 
 fn recover_uuid_vec(

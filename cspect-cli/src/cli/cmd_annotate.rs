@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::Parser;
 
 use crate::{
-    annotate::{Annotater, addr2line::Addr2LineAnnotator, annotate, disasm::DisasmAnnotater},
+    annotate::{addr2line::Addr2LineAnnotator, annotate, disasm::DisasmAnnotater, Annotater},
     open::{open_trace, serve_trace},
 };
 
