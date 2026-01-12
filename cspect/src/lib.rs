@@ -388,11 +388,12 @@ impl Context {
         value: CounterValue,
         compress: bool,
     ) -> Result<(), String> {
-        if compress
-            && let Some(counter) = self.counters.get(&track_uuid)
-            && counter.last_value == value
-        {
-            return Ok(());
+        if compress {
+            if let Some(counter) = self.counters.get(&track_uuid) {
+                if counter.last_value == value {
+                    return Ok(());
+                }
+            }
         }
 
         self.encode_buffer.clear();

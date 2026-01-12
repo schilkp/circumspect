@@ -158,10 +158,10 @@ fn annotate_packet(
 ) -> anyhow::Result<Option<TracePacket>> {
     let mut did_modify = false;
 
-    if let Some(synthetto::trace_packet::Data::TrackEvent(evt)) = &mut pkt.data
-        && let Some(synthetto::track_event::NameField::Name(name)) = &mut evt.name_field
-    {
-        did_modify |= annotate_string(name, annotators)?;
+    if let Some(synthetto::trace_packet::Data::TrackEvent(evt)) = &mut pkt.data {
+        if let Some(synthetto::track_event::NameField::Name(name)) = &mut evt.name_field {
+            did_modify |= annotate_string(name, annotators)?;
+        }
     }
 
     if let Some(synthetto::trace_packet::Data::TrackDescriptor(evt)) = &mut pkt.data {
@@ -184,10 +184,10 @@ fn annotate_packet(
             }
         }
 
-        if let Some(thread) = &mut evt.thread
-            && let Some(name) = &mut thread.thread_name
-        {
-            did_modify |= annotate_string(name, annotators)?;
+        if let Some(thread) = &mut evt.thread {
+            if let Some(name) = &mut thread.thread_name {
+                did_modify |= annotate_string(name, annotators)?;
+            }
         }
     }
 
