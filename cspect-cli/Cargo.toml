@@ -21,9 +21,9 @@ synthetto = { path = "../synthetto" }
 instruction-decoder = { path = "../third_party/instruction-decoder/" }
 clap_complete = "4.5.57"
 anyhow = "1.0.99"
-axum = { version = "0.8.4", default-features = false, features = ["http1", "json", "query", "tokio"], optional = true }
+axum = { version = "0.8.4", default-features = false, features = ["http1", "tokio"], optional = true }
 open = { version = "5.3.3", optional = true}
-tokio = { version = "1.47.1", default-features = false, features = ["rt", "macros", "net", "fs"], optional = true }
+tokio = { version = "1.47.1", default-features = false, features = ["rt", "fs"], optional = true }
 tokio-util = { version = "0.7", features = ["io"], optional = true }
 log = "0.4.27"
 env_logger = { version = "0.11.8", default-features = false }
