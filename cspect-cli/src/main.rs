@@ -24,7 +24,7 @@ fn main() -> ExitCode {
     let rst = match cli.cmd {
         CliCmd::Completion(cmd) => cmd.run(),
         CliCmd::Annotate(cmd) => cmd.run(),
-        #[cfg(feature = "open")]
+        #[cfg(feature = "serve")]
         CliCmd::Open(cmd) => cmd.run(),
         #[cfg(feature = "serve")]
         CliCmd::Serve(cmd) => cmd.run(),

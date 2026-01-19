@@ -1,6 +1,6 @@
 mod cmd_annotate;
 mod cmd_completion;
-#[cfg(feature = "open")]
+#[cfg(feature = "serve")]
 mod cmd_open;
 #[cfg(feature = "serve")]
 mod cmd_serve;
@@ -22,7 +22,7 @@ pub struct Cli {
 pub enum CliCmd {
     Annotate(cmd_annotate::Cmd),
     Completion(cmd_completion::Cmd),
-    #[cfg(feature = "open")]
+    #[cfg(feature = "serve")]
     Open(cmd_open::Cmd),
     #[cfg(feature = "serve")]
     Serve(cmd_serve::Cmd),

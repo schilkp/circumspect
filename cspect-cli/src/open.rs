@@ -131,7 +131,7 @@ pub fn serve_trace(trace_file: &Path) -> anyhow::Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "open")]
+#[cfg(feature = "serve")]
 pub fn open_trace(trace_file: &Path) -> anyhow::Result<()> {
     if !trace_file.exists() {
         return Err(anyhow::anyhow!(
@@ -141,7 +141,7 @@ pub fn open_trace(trace_file: &Path) -> anyhow::Result<()> {
     }
     let link = format!("{ORIGIN}/#!/?url=http://127.0.0.1:9001/trace.proto");
     info!("Opening trace in perfetto..");
-    webbrowser::open(&link)?;
+    open::that(link).map_err(|e| anyhow::anyhow!("Failed to open link: {e:?}"))?;
     start_trace_server(trace_file, true)?;
     Ok(())
 }
