@@ -1,11 +1,12 @@
-// ==== Bindgen-produced svdpi.h types =========================================
+#![allow(non_camel_case_types)]
+#![allow(dead_code)]
+//! Select FFI types from `svdpi.sv`
 
-// svdpi.h interface kept in private module, with only selective re-exports:
-mod ffi {
-    #![allow(non_upper_case_globals)]
-    #![allow(non_camel_case_types)]
-    #![allow(dead_code)]
-    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
-}
+// typedef uint8_t svScalar;
+pub type svScalar = u8;
 
-pub use ffi::svBit;
+// typedef svScalar svBit; /* scalar */
+pub type svBit = svScalar;
+
+// typedef svScalar svLogic; /* scalar */
+pub type svLogic = svScalar;

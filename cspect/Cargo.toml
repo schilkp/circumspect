@@ -13,5 +13,4 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 synthetto = { path = "../synthetto" }
 
 [build-dependencies]
-bindgen = "0.72.0"
 cbindgen = { version = "0.29.0" }

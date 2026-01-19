@@ -1,43 +1,10 @@
 use std::env;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 fn main() {
-    // ==== Find svdpi.h =======================================================
-
-    // Ensure svdpi.h file exists
-    let crate_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-
-    let svdpi_path = PathBuf::from(crate_dir.clone()).join(Path::new("svdpi.h"));
-    if !svdpi_path.exists() {
-        panic!(
-            "[cspect_dpi/build.rs]: Could not find svdpi.h header at {}.",
-            svdpi_path.to_string_lossy()
-        )
-    }
-
-    // Register svdpi.h as build dependency (although it really should
-    // never change):
-    println!("cargo:rerun-if-changed={}", svdpi_path.to_string_lossy());
-
-    // ==== Generate rust types/bindings for svdpi.h ===========================
-
-    // Generate rust bindings of types in `svdpi.h`:
-    println!("cargo:rerun-if-changed=bindgen.rs");
-    let bindings = bindgen::Builder::default()
-        .header("bindgen.h")
-        .clang_arg(format!("-I{}", crate_dir))
-        // Tell cargo to invalidate the built crate whenever any of the
-        // included header files changed.
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
-        .generate()
-        .expect("Unable to generate bindings");
-
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    bindings
-        .write_to_file(out_path.join("bindings.rs"))
-        .expect("Couldn't write bindings!");
-
     // ==== Generate C header file with DPI function signatures ================
+
+    let crate_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
 
     // Register re-generation if relevant files change:
     println!("cargo:rerun-if-changed=src/dpi.rs");

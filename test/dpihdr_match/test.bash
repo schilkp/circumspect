@@ -22,6 +22,6 @@ mv ./build/Vcspect_dpi__Dpi.h ./build/dpi_hdr_verilator.h
 
 # Compile basic C program including both headers (Would fail if prototypes
 # don't match):
-gcc ./main.c -Ibuild/ -I../../cspect/ -o ./build/a.out -Wall -Wextra -Wpedantic
+gcc ./main.c -Ibuild/ -I. -o ./build/a.out -Wall -Wextra -Wpedantic
 
 ./build/a.out
